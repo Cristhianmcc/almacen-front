@@ -327,7 +327,7 @@ class ProductosPanel(ttk.Frame):
             for k in campos_db:
                 widget = entradas.get(k)
                 if widget:
-                    if isinstance(widget, ttk.Entry):
+                    if isinstance(widget, (tk.Entry, ttk.Entry)):
                         datos[k] = widget.get()
                     elif isinstance(widget, ttk.Combobox):
                         datos[k] = widget.get()

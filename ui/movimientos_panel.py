@@ -72,6 +72,21 @@ class MovimientosPanel(ttk.Frame):
                 cantidad = int(cantidad_var.get())
                 if cantidad <= 0:
                     raise ValueError("La cantidad debe ser mayor a cero.")
+                # Validación de stock para salida
+                if tipo == 'salida':
+                    stock_actual = producto.get("stock_actual", 0)
+                    if cantidad > stock_actual:
+                        top.lift()  # Traer el formulario al frente
+                        top.attributes('-topmost', True)
+                        top.after(100, lambda: top.attributes('-topmost', False))
+                        messagebox.showwarning(
+                            "Stock insuficiente",
+                            f"No se puede registrar la salida.\n\nCantidad solicitada: {cantidad}\nStock disponible: {stock_actual}\n\nPor favor, ingresa una cantidad válida.",
+                            parent=top
+                        )
+                        cantidad_entry.focus_set()
+                        cantidad_var.set("")
+                        return
                 usuario = "admin"  # Cambia por el usuario real si aplica
                 body = {
                     "producto_id": int(producto_id),
@@ -88,9 +103,9 @@ class MovimientosPanel(ttk.Frame):
                     top.destroy()
                     self.cargar_movimientos()
                 else:
-                    messagebox.showerror("Error", resp.message)
+                    messagebox.showerror("Error", resp.message, parent=top)
             except Exception as e:
-                messagebox.showerror("Error", str(e))
+                messagebox.showerror("Error", str(e), parent=top)
         btn_frame = tk.Frame(frm, bg="#f7f7f7")
         btn_frame.grid(row=5, column=0, columnspan=2, pady=18)
         tk.Button(btn_frame, text="Guardar", command=enviar, bg="#1976d2", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=6, activebackground="#1565c0").pack(side='left', padx=10)
