@@ -10,7 +10,7 @@ class ProductosPanel(ttk.Frame):
         self.cargar_productos()
 
     def create_widgets(self):
-        # Encabezado profesional
+        # Encabezado profesional y responsivo
         header = tk.Frame(self, bg="#1976d2")
         header.pack(fill='x', pady=(0, 0))
         tk.Label(header, text="Gestión de Productos", font=("Segoe UI", 28, "bold"), fg="#fff", bg="#1976d2").pack(anchor='center', pady=18)
@@ -30,14 +30,13 @@ class ProductosPanel(ttk.Frame):
         filtro_frame.pack(fill='x', padx=0, pady=(0, 0))
         search_card = tk.Frame(filtro_frame, bg="#fff", highlightbackground="#e0e0e0", highlightthickness=1)
         search_card.pack(padx=24, pady=10, fill='x')
-        # Bordes redondeados y sombra sutil (simulada)
         search_card.configure(bd=0)
         label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#1976d2", "bg": "#fff"}
         entry_style = {"background": "#f3f6fb", "foreground": "#222", "relief": "flat", "borderwidth": 1, "font": ("Segoe UI", 12)}
         tk.Label(search_card, text="Buscar:", **label_style).pack(side='left', padx=(16, 6), pady=10)
         self.filtro_var = tk.StringVar()
         entry = tk.Entry(search_card, textvariable=self.filtro_var, **entry_style)
-        entry.pack(side='left', padx=(0, 12), ipady=2, ipadx=2, pady=10)
+        entry.pack(side='left', padx=(0, 12), ipady=2, ipadx=2, pady=10, fill='x', expand=True)
         # Agrupar botones en un frame para mejor alineación
         btn_group = tk.Frame(search_card, bg="#fff")
         btn_group.pack(side='left', padx=(0, 0), pady=6)
@@ -52,32 +51,16 @@ class ProductosPanel(ttk.Frame):
         for txt, cmd, color, active in botones:
             btn = tk.Button(btn_group, text=txt, command=cmd, bg=color, activebackground=active, **btn_style)
             btn.pack(side='left', padx=6, pady=2)
-        # Tabla profesional con bordes sutiles
+        # Tabla profesional y responsiva
         tabla_frame = tk.Frame(self, bg="#fff")
         tabla_frame.pack(fill='both', expand=True, padx=24, pady=(0, 18))
-        style = ttk.Style()
-        style.theme_use('clam')
-        style.configure("Treeview",
-            font=("Segoe UI", 13),
-            rowheight=32,
-            background="#ffffff",
-            fieldbackground="#ffffff",
-            foreground="#222",
-            borderwidth=0
-        )
-        style.configure("Treeview.Heading",
-            font=("Segoe UI", 14, "bold"),
-            background="#1976d2",
-            foreground="#fff",
-            borderwidth=0
-        )
-        style.map("Treeview",
-            background=[('selected', '#e3f2fd')],
-            foreground=[('selected', '#111')]
-        )
-
         columns = ("id", "codigo", "nombre", "marca", "orden", "medida", "precio", "subcuenta", "stock", "fecha_ingreso", "fecha_vencimiento", "estado")
         self.tabla = ttk.Treeview(tabla_frame, columns=columns, show='headings', style="Treeview")
+        self.tabla.pack(fill='both', expand=True, padx=6, pady=6)
+        self.lbl_status = tk.Label(tabla_frame, text="Productos cargados: 0", font=("Segoe UI", 12, "bold"), fg="#1976d2", bg="#fff")
+        self.lbl_status.pack(anchor='w', padx=8, pady=(0, 8))
+        style = ttk.Style()
+        self.tabla_style_patch(style)
         # Configurar encabezados y columnas
         self.tabla.heading("id", text="ID")
         self.tabla.column("id", width=0, stretch=False)

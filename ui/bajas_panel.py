@@ -11,12 +11,13 @@ class BajasPanel(ttk.Frame):
 
     def create_widgets(self):
         self.configure(style='TFrame')
-        self.lbl_title = ttk.Label(self, text="Bajas de Inventario", font=("Segoe UI", 20, "bold"), background="#f7f7f7", foreground="#ff9800")
-        self.lbl_title.pack(pady=30)
+        header = tk.Frame(self, bg="#ff9800")
+        header.pack(fill='x', pady=(0, 0))
+        tk.Label(header, text="Bajas de Inventario", font=("Segoe UI", 28, "bold"), fg="#fff", bg="#ff9800").pack(anchor='center', pady=18)
         filtro_frame = tk.Frame(self, bg="#f7f7f7")
         filtro_frame.pack(fill='x', pady=10)
-        label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#333", "bg": "#f7f7f7"}
-        entry_style = {"background": "#fff", "foreground": "#222", "relief": "solid", "borderwidth": 2, "font": ("Segoe UI", 12)}
+        label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#1976d2", "bg": "#f7f7f7"}
+        entry_style = {"background": "#f3f6fb", "foreground": "#222", "relief": "flat", "borderwidth": 1, "font": ("Segoe UI", 12)}
         tk.Label(filtro_frame, text="Buscar:", **label_style).pack(side='left')
         self.filtro_var = tk.StringVar()
         tk.Entry(filtro_frame, textvariable=self.filtro_var, **entry_style).pack(side='left', padx=5)

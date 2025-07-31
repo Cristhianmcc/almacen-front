@@ -12,10 +12,11 @@ class DashboardPanel(ttk.Frame):
     def create_widgets(self):
         self.configure(style='TFrame')
         self.lbl_title = ttk.Label(self, text="Estadísticas Generales", font=("Segoe UI", 28, "bold"), background="#f7f7f7", foreground="#1565c0")
-        self.lbl_title.pack(pady=30)
+        self.lbl_title.pack(pady=(30, 10), anchor='center', fill='x')
         self.stats = {}
         stats_frame = tk.Frame(self, bg="#f7f7f7")
         stats_frame.pack(fill='both', expand=True, pady=10)
+        stats_frame.columnconfigure((0,1,2), weight=1)
         cards_info = [
             {"campo": "Total Productos", "color": "#1976d2", "icon": "📦", "desc": "Productos activos en inventario"},
             {"campo": "Total Movimientos", "color": "#43a047", "icon": "🔄", "desc": "Entradas y salidas registradas"},
@@ -31,7 +32,7 @@ class DashboardPanel(ttk.Frame):
         for i, info in enumerate(cards_info):
             row = i // max_cards_per_row
             col = i % max_cards_per_row
-            card = tk.Frame(stats_frame, bg="#fff", bd=0, highlightbackground=info["color"], highlightthickness=3, width=card_max_width, height=card_height)
+            card = tk.Frame(stats_frame, bg="#fff", bd=0, highlightbackground=info["color"], highlightthickness=3)
             card.grid(row=row, column=col, padx=18, pady=12, sticky="nsew")
             stats_frame.grid_columnconfigure(col, weight=1, minsize=card_min_width)
             card.grid_propagate(0)
