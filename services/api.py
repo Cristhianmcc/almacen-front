@@ -1,8 +1,8 @@
 import requests
 
-# BASE_URL = "http://localhost:3003/api"  # Cambia el puerto si tu backend usa otro
+BASE_URL = "http://localhost:3003/api"  # Cambia el puerto si tu backend usa otro
 
-BASE_URL = "https://almacen-instituto.onrender.com/api"  # Cambia el puerto si tu backend usa otro
+# BASE_URL = "https://almacen-instituto.onrender.com/api"  # Cambia el puerto si tu backend usa otro
 
 
 class ApiResponse:

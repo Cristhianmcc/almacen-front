@@ -31,9 +31,14 @@ class MovimientosPanel(ttk.Frame):
         style = ttk.Style()
         style.configure("Treeview", font=("Segoe UI", 11), rowheight=28, background="#fff", fieldbackground="#fff")
         style.configure("Treeview.Heading", font=("Segoe UI", 12, "bold"), background="#e3f2fd")
-        self.tabla = ttk.Treeview(tabla_frame, columns=("id", "producto_id", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"), show='headings', style="Treeview")
-        for col in ("id", "producto_id", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"):
+        # Columnas ocultas: id, usuario, motivo, destino
+        # self.tabla = ttk.Treeview(tabla_frame, columns=("id", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"), show='headings', style="Treeview")
+        # for col in ("id", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"):
+        #     self.tabla.heading(col, text=col.replace('_', ' ').capitalize())
+        self.tabla = ttk.Treeview(tabla_frame, columns=("codigo_producto", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "observaciones"), show='headings', style="Treeview")
+        for col in ("codigo_producto", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "observaciones"):
             self.tabla.heading(col, text=col.replace('_', ' ').capitalize())
+            self.tabla.column(col, anchor='center')
         self.tabla.pack(fill='both', expand=True, padx=10, pady=10)
         self.lbl_status = ttk.Label(self, text="Movimientos cargados: 0")
         self.lbl_status.pack(anchor='w', padx=5, pady=2)
@@ -179,13 +184,24 @@ class MovimientosPanel(ttk.Frame):
         style = ttk.Style()
         style.configure("Treeview", font=("Segoe UI", 11), rowheight=28, background="#fff", fieldbackground="#fff")
         style.configure("Treeview.Heading", font=("Segoe UI", 12, "bold"), background="#e3f2fd")
-        self.tabla = ttk.Treeview(tabla_frame, columns=("id", "producto_id", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"), show='headings', style="Treeview")
-        for col in ("id", "producto_id", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"):
+        # Columnas ocultas: id, usuario, motivo, destino
+        # self.tabla = ttk.Treeview(tabla_frame, columns=("id", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"), show='headings', style="Treeview")
+        # for col in ("id", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"):
+        #     self.tabla.heading(col, text=col.replace('_', ' ').capitalize())
+        # Scrollbars
+        vsb = tk.Scrollbar(tabla_frame, orient="vertical", command=lambda *args: self.tabla.yview(*args))
+        hsb = tk.Scrollbar(tabla_frame, orient="horizontal", command=lambda *args: self.tabla.xview(*args))
+        self.tabla = ttk.Treeview(tabla_frame, columns=("codigo_producto", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "observaciones"), show='headings', style="Treeview", yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        for col in ("codigo_producto", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "observaciones"):
             self.tabla.heading(col, text=col.replace('_', ' ').capitalize())
-        self.tabla.pack(fill='both', expand=True, padx=10, pady=10)
-
-        self.lbl_status = ttk.Label(self, text="Movimientos cargados: 0")
-        self.lbl_status.pack(anchor='w', padx=5, pady=2)
+            self.tabla.column(col, anchor='center')
+        self.tabla.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
+        vsb.grid(row=0, column=1, sticky='ns')
+        hsb.grid(row=1, column=0, sticky='ew')
+        tabla_frame.grid_rowconfigure(0, weight=1)
+        tabla_frame.grid_columnconfigure(0, weight=1)
+        self.lbl_status = ttk.Label(tabla_frame, text="Movimientos cargados: 0")
+        self.lbl_status.grid(row=2, column=0, sticky='w', padx=5, pady=2)
 
 
     def cargar_movimientos(self):
@@ -198,17 +214,22 @@ class MovimientosPanel(ttk.Frame):
             self.tabla.delete(*self.tabla.get_children())
             count = 0
             for mov in movimientos:
-                producto_id = mov.get("producto_id", "")
+                producto = mov.get("productos", {})
+                codigo_producto = producto.get("codigo_item", "")
+                nombre_producto = producto.get("nombre_item", "")
                 tipo_movimiento = mov.get("tipo_movimiento", "")
                 cantidad = mov.get("cantidad", "")
                 fecha_movimiento = mov.get("fecha_movimiento", "")
-                usuario = mov.get("usuario", "")
+                # usuario = mov.get("usuario", "")  # Oculto
                 observaciones = mov.get("observaciones", "")
-                motivo = mov.get("motivo", "")
-                destino = mov.get("destino", "")
-                if filtro in str(producto_id).lower() or filtro in str(tipo_movimiento).lower():
+                # motivo = mov.get("motivo", "")    # Oculto
+                # destino = mov.get("destino", "")   # Oculto
+                # Búsqueda por nombre de producto, código o tipo de movimiento
+                if (filtro in nombre_producto.lower() or
+                    filtro in codigo_producto.lower() or
+                    filtro in str(tipo_movimiento).lower()):
                     self.tabla.insert('', 'end', values=(
-                        mov.get("id"), producto_id, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones, motivo, destino
+                        codigo_producto, nombre_producto, tipo_movimiento, cantidad, fecha_movimiento, observaciones
                     ))
                     count += 1
             self.lbl_status.config(text=f"Movimientos cargados: {count}")

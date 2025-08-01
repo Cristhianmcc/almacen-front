@@ -10,6 +10,8 @@ class DashboardPanel(ttk.Frame):
         self.cargar_estadisticas()
 
     def create_widgets(self):
+        card_min_width = 260
+        max_cards_per_row = 3
         self.configure(style='TFrame')
         self.lbl_title = ttk.Label(self, text="Estadísticas Generales", font=("Segoe UI", 28, "bold"), background="#f7f7f7", foreground="#1565c0")
         self.lbl_title.pack(pady=(30, 10), anchor='center', fill='x')
@@ -24,8 +26,6 @@ class DashboardPanel(ttk.Frame):
             {"campo": "Total Sobrantes", "color": "#ab47bc", "icon": "➕", "desc": "Sobrantes en almacén"},
             {"campo": "Total Alertas", "color": "#d32f2f", "icon": "⚠️", "desc": "Alertas activas"},
         ]
-        max_cards_per_row = 3
-        card_min_width = 260
         card_max_width = 340
         card_height = 200
         self.card_widgets = []
@@ -51,11 +51,12 @@ class DashboardPanel(ttk.Frame):
     def cargar_estadisticas(self):
         try:
             productos = get("/products").data or []
+            productos_activos = [p for p in productos if p.get("estado") != "baja"]
             movimientos = get("/movements").data or []
             bajas = get("/withdrawals").data or []
             sobrantes = get("/surplus").data or []
             alertas = get("/alerts").data or []
-            self.stats["Total Productos"].config(text=f"Total Productos: {len(productos)}")
+            self.stats["Total Productos"].config(text=f"Total Productos: {len(productos_activos)}")
             self.stats["Total Movimientos"].config(text=f"Total Movimientos: {len(movimientos)}")
             self.stats["Total Bajas"].config(text=f"Total Bajas: {len(bajas)}")
             self.stats["Total Sobrantes"].config(text=f"Total Sobrantes: {len(sobrantes)}")
@@ -63,3 +64,5 @@ class DashboardPanel(ttk.Frame):
         except Exception as e:
             for campo in self.stats:
                 self.stats[campo].config(text=f"Error: {e}")
+    def cargar_dashboard(self):
+        self.cargar_estadisticas()

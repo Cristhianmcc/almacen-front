@@ -28,14 +28,21 @@ class AlertasPanel(ttk.Frame):
         style = ttk.Style()
         style.configure("Treeview", font=("Segoe UI", 11), rowheight=28, background="#fff", fieldbackground="#fff")
         style.configure("Treeview.Heading", font=("Segoe UI", 12, "bold"), background="#fce4ec")
-        columns = ("id", "producto_id", "tipo_alerta", "descripcion", "fecha_alerta", "estado_alerta", "nivel_prioridad")
-        self.tabla = ttk.Treeview(tabla_frame, columns=columns, show='headings', style="Treeview")
+        columns = ("codigo_producto", "nombre_producto", "tipo_alerta", "descripcion", "fecha_alerta", "estado_alerta", "nivel_prioridad")
+        # Scrollbars
+        vsb = tk.Scrollbar(tabla_frame, orient="vertical", command=lambda *args: self.tabla.yview(*args))
+        hsb = tk.Scrollbar(tabla_frame, orient="horizontal", command=lambda *args: self.tabla.xview(*args))
+        self.tabla = ttk.Treeview(tabla_frame, columns=columns, show='headings', style="Treeview", yscrollcommand=vsb.set, xscrollcommand=hsb.set)
         for col in columns:
             self.tabla.heading(col, text=col.replace('_', ' ').capitalize())
-            self.tabla.column(col, width=100)
-        self.tabla.pack(fill='both', expand=True, padx=10, pady=10)
-        self.lbl_status = ttk.Label(self, text="Alertas cargadas: 0")
-        self.lbl_status.pack(anchor='w', padx=5, pady=2)
+            self.tabla.column(col, width=120, anchor='center')
+        self.tabla.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
+        vsb.grid(row=0, column=1, sticky='ns')
+        hsb.grid(row=1, column=0, sticky='ew')
+        tabla_frame.grid_rowconfigure(0, weight=1)
+        tabla_frame.grid_columnconfigure(0, weight=1)
+        self.lbl_status = ttk.Label(tabla_frame, text="Alertas cargadas: 0")
+        self.lbl_status.grid(row=2, column=0, sticky='w', padx=5, pady=2)
         ttk.Button(self, text="Ver Detalle", command=self.ver_detalle).pack(anchor='e', padx=10, pady=5)
 
     def cargar_alertas(self):
@@ -48,15 +55,19 @@ class AlertasPanel(ttk.Frame):
             self.tabla.delete(*self.tabla.get_children())
             count = 0
             for alerta in alertas:
-                producto_id = alerta.get("producto_id", "")
+                productos = alerta.get("productos", {})
+                codigo_producto = productos.get("codigo_item", "")
+                nombre_producto = productos.get("nombre_item", "")
                 tipo_alerta = alerta.get("tipo_alerta", "")
                 descripcion = alerta.get("descripcion", "")
                 fecha_alerta = alerta.get("fecha_alerta", "")
                 estado_alerta = alerta.get("estado_alerta", "")
                 nivel_prioridad = alerta.get("nivel_prioridad", "")
-                if filtro in str(producto_id).lower() or filtro in str(tipo_alerta).lower():
+                if (filtro in nombre_producto.lower() or
+                    filtro in str(codigo_producto).lower() or
+                    filtro in str(tipo_alerta).lower()):
                     self.tabla.insert('', 'end', values=(
-                        alerta.get("id"), producto_id, tipo_alerta, descripcion, fecha_alerta, estado_alerta, nivel_prioridad
+                        codigo_producto, nombre_producto, tipo_alerta, descripcion, fecha_alerta, estado_alerta, nivel_prioridad
                     ))
                     count += 1
             self.lbl_status.config(text=f"Alertas cargadas: {count}")
@@ -64,4 +75,21 @@ class AlertasPanel(ttk.Frame):
             messagebox.showerror("Error", str(e))
 
     def ver_detalle(self):
-        messagebox.showinfo("Detalle", "Funcionalidad para ver detalle de alerta")
+        selected = self.tabla.focus()
+        if not selected:
+            messagebox.showwarning("Detalle", "Selecciona una alerta para ver el detalle.")
+            return
+        values = self.tabla.item(selected, 'values')
+        if not values:
+            messagebox.showwarning("Detalle", "No se pudo obtener la información de la alerta.")
+            return
+        detalle = (
+            f"Código producto: {values[0]}\n"
+            f"Nombre producto: {values[1]}\n"
+            f"Tipo alerta: {values[2]}\n"
+            f"Descripción: {values[3]}\n"
+            f"Fecha alerta: {values[4]}\n"
+            f"Estado alerta: {values[5]}\n"
+            f"Nivel prioridad: {values[6]}"
+        )
+        messagebox.showinfo("Detalle de alerta", detalle)
