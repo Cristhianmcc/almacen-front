@@ -11,20 +11,33 @@ class MovimientosPanel(ttk.Frame):
         header_inner.pack(anchor='center', pady=10)
         tk.Label(header_inner, text="🔄", font=("Segoe UI Emoji", 32), fg="#fff", bg="#43a047").pack(side='left', padx=(0, 12))
         tk.Label(header_inner, text="Movimientos de Inventario", font=("Segoe UI", 28, "bold"), fg="#fff", bg="#43a047").pack(side='left')
+
         # Barra de búsqueda y actualizar, centrada y moderna
         search_frame = tk.Frame(self, bg="#f7f7f7")
         search_frame.pack(pady=(10, 18))
         label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#333", "bg": "#f7f7f7"}
         entry_style = {"background": "#fff", "foreground": "#222", "relief": "solid", "borderwidth": 2, "font": ("Segoe UI", 12)}
         self.filtro_var = tk.StringVar()
+        self.fecha_var = tk.StringVar()
+        from tkcalendar import DateEntry
+        import datetime
+        hoy = datetime.date.today().strftime('%Y-%m-%d')
+        self.fecha_var.set(hoy)
         tk.Label(search_frame, text="Buscar:", **label_style).pack(side='left', padx=(0, 5))
         tk.Entry(search_frame, textvariable=self.filtro_var, **entry_style, width=24).pack(side='left', padx=(0, 10))
         tk.Button(search_frame, text="Buscar", command=self.cargar_movimientos, bg="#43a047", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=4, activebackground="#388e3c").pack(side='left')
+        tk.Label(search_frame, text="Filtrar por fecha:", **label_style).pack(side='left', padx=(10, 5))
+        self.fecha_entry = DateEntry(search_frame, textvariable=self.fecha_var, date_pattern='yyyy-mm-dd', font=("Segoe UI", 12), width=12)
+        self.fecha_entry.pack(side='left', padx=(0, 10))
+        tk.Button(search_frame, text="Filtrar", command=self.cargar_movimientos, bg="#1976d2", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=4, activebackground="#1565c0").pack(side='left')
+      
+
         # Botones de registrar entrada/salida
         btn_frame = ttk.Frame(self)
         btn_frame.pack(fill='x', pady=10)
         ttk.Button(btn_frame, text="Registrar Entrada", command=self.registrar_entrada).pack(side='left', padx=10)
         ttk.Button(btn_frame, text="Registrar Salida", command=self.registrar_salida).pack(side='left', padx=10)
+
         # Tabla de movimientos
         tabla_frame = tk.Frame(self, bg="#f7f7f7")
         tabla_frame.pack(fill='both', expand=True, padx=20, pady=20)
@@ -167,9 +180,18 @@ class MovimientosPanel(ttk.Frame):
         search_frame.pack(pady=(10, 18))
         label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#333", "bg": "#f7f7f7"}
         entry_style = {"background": "#fff", "foreground": "#222", "relief": "solid", "borderwidth": 2, "font": ("Segoe UI", 12)}
-        self.filtro_var = tk.StringVar()
+        self.filtro_var = tk.StringVar() 
+        self.fecha_var = tk.StringVar()
+        from tkcalendar import DateEntry
+        import datetime
+        hoy = datetime.date.today().strftime('%Y-%m-%d')
+        self.fecha_var.set(hoy)
         tk.Label(search_frame, text="Buscar:", **label_style).pack(side='left', padx=(0, 5))
         tk.Entry(search_frame, textvariable=self.filtro_var, **entry_style, width=24).pack(side='left', padx=(0, 10))
+        tk.Label(search_frame, text="Filtrar por fecha:", **label_style).pack(side='left', padx=(10, 5))
+        self.fecha_entry = DateEntry(search_frame, textvariable=self.fecha_var, date_pattern='yyyy-mm-dd', font=("Segoe UI", 12), width=12)
+        self.fecha_entry.pack(side='left', padx=(0, 10))
+        tk.Button(search_frame, text="Filtrar", command=self.cargar_movimientos, bg="#1976d2", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=4, activebackground="#1565c0").pack(side='left')
         tk.Button(search_frame, text="Buscar", command=self.cargar_movimientos, bg="#43a047", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=4, activebackground="#388e3c").pack(side='left')
 
         # Botones de registrar entrada/salida
@@ -211,8 +233,12 @@ class MovimientosPanel(ttk.Frame):
                 raise Exception(response.message or "Error al obtener movimientos")
             movimientos = response.data or []
             filtro = self.filtro_var.get().lower()
+            fecha_filtrada = self.fecha_var.get()
             self.tabla.delete(*self.tabla.get_children())
             count = 0
+            import datetime
+            import tzlocal
+            local_tz = tzlocal.get_localzone()
             for mov in movimientos:
                 producto = mov.get("productos", {})
                 codigo_producto = producto.get("codigo_item", "")
@@ -220,16 +246,34 @@ class MovimientosPanel(ttk.Frame):
                 tipo_movimiento = mov.get("tipo_movimiento", "")
                 cantidad = mov.get("cantidad", "")
                 fecha_movimiento = mov.get("fecha_movimiento", "")
-                # usuario = mov.get("usuario", "")  # Oculto
                 observaciones = mov.get("observaciones", "")
-                # motivo = mov.get("motivo", "")    # Oculto
-                # destino = mov.get("destino", "")   # Oculto
-                # Búsqueda por nombre de producto, código o tipo de movimiento
-                if (filtro in nombre_producto.lower() or
+                # Convertir fecha_movimiento a local
+                fecha_mov = None
+                fecha_sel = None
+                fecha_mov_local_str = fecha_movimiento
+                try:
+                    # Parse ISO y convertir a local
+                    dt_utc = datetime.datetime.fromisoformat(str(fecha_movimiento).replace('Z', '+00:00'))
+                    dt_local = dt_utc.astimezone(local_tz)
+                    fecha_mov = dt_local.date()
+                    fecha_mov_local_str = dt_local.strftime('%Y-%m-%d %H:%M:%S')
+                except Exception:
+                    try:
+                        fecha_mov = datetime.datetime.strptime(str(fecha_movimiento)[:10], '%Y-%m-%d').date()
+                        fecha_mov_local_str = str(fecha_movimiento)[:10]
+                    except Exception:
+                        fecha_mov = None
+                try:
+                    fecha_sel = datetime.datetime.strptime(fecha_filtrada, '%Y-%m-%d').date()
+                except Exception:
+                    fecha_sel = None
+                if (fecha_mov and fecha_sel and fecha_mov == fecha_sel and (
+                    filtro in nombre_producto.lower() or
                     filtro in codigo_producto.lower() or
-                    filtro in str(tipo_movimiento).lower()):
+                    filtro in str(tipo_movimiento).lower()
+                )):
                     self.tabla.insert('', 'end', values=(
-                        codigo_producto, nombre_producto, tipo_movimiento, cantidad, fecha_movimiento, observaciones
+                        codigo_producto, nombre_producto, tipo_movimiento, cantidad, fecha_mov_local_str, observaciones
                     ))
                     count += 1
             self.lbl_status.config(text=f"Movimientos cargados: {count}")

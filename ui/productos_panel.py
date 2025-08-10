@@ -54,7 +54,9 @@ class ProductosPanel(ttk.Frame):
         # Tabla profesional y responsiva
         tabla_frame = tk.Frame(self, bg="#fff")
         tabla_frame.pack(fill='both', expand=True, padx=24, pady=(0, 18))
-        columns = ("id", "codigo", "nombre", "marca", "orden", "medida", "precio", "subcuenta", "stock", "fecha_ingreso", "fecha_vencimiento", "estado")
+        # Se comenta la columna 'estado' para futura visualización
+        # columns = ("id", "codigo", "nombre", "marca", "orden", "medida", "precio", "subcuenta", "stock", "fecha_ingreso", "fecha_vencimiento", "estado")
+        columns = ("id", "codigo", "nombre", "marca", "orden", "medida", "mayor", "subcuenta", "stock", "fecha_ingreso", "fecha_vencimiento")
         # Scrollbars
         vsb = tk.Scrollbar(tabla_frame, orient="vertical", command=lambda *args: self.tabla.yview(*args))
         hsb = tk.Scrollbar(tabla_frame, orient="horizontal", command=lambda *args: self.tabla.xview(*args))
@@ -71,18 +73,19 @@ class ProductosPanel(ttk.Frame):
         # Configurar encabezados y columnas
         self.tabla.heading("id", text="ID")
         self.tabla.column("id", width=0, stretch=False)
+        # Se comenta el header 'estado' y se cambia 'precio' por 'mayor'
         headers = [
             ("codigo", "Código"),
             ("nombre", "Nombre"),
             ("marca", "Marca"),
             ("orden", "Orden Compra"),
             ("medida", "Medida"),
-            ("precio", "Precio"),
+            ("mayor", "Mayor"),
             ("subcuenta", "Subcuenta"),
             ("stock", "Stock"),
             ("fecha_ingreso", "F. Ingreso"),
-            ("fecha_vencimiento", "F. Vencimiento"),
-            ("estado", "Estado")
+            ("fecha_vencimiento", "F. Vencimiento")
+            # ("estado", "Estado")  # Comentado para futura visualización
         ]
         for col, header in headers:
             self.tabla.heading(col, text=header)
@@ -125,14 +128,14 @@ class ProductosPanel(ttk.Frame):
                 marca = prod.get("nombre_marca", "")
                 orden = prod.get("orden_compra", "")
                 medida = prod.get("nombre_medida", "")
-                precio = prod.get("mayor", "")
+                mayor = prod.get("mayor", "")
                 subcuenta = prod.get("sub_cta", "")
                 stock = prod.get("stock_actual", "")
                 fecha_ingreso = prod.get("fecha_ingreso", "")
                 fecha_vencimiento = prod.get("fecha_vencimiento", "")
-                estado = prod.get("estado", "")
+                # estado = prod.get("estado", "")  # Comentado para futura visualización
                 # Filtro por nombre o código
-                if estado != "baja" and (filtro in str(nombre).lower() or filtro in str(codigo).lower()):
+                if prod.get("estado", "") != "baja" and (filtro in str(nombre).lower() or filtro in str(codigo).lower()):
                     tags = []
                     try:
                         if int(stock) <= low_stock_threshold:
@@ -140,7 +143,8 @@ class ProductosPanel(ttk.Frame):
                     except Exception:
                         pass
                     self.tabla.insert('', 'end', values=(
-                        id_, codigo, nombre, marca, orden, medida, precio, subcuenta, stock, fecha_ingreso, fecha_vencimiento, estado
+                        id_, codigo, nombre, marca, orden, medida, mayor, subcuenta, stock, fecha_ingreso, fecha_vencimiento
+                        # estado  # Comentado para futura visualización
                     ), tags=tags)
                     count += 1
             self.lbl_status.config(text=f"Productos cargados: {count}")
@@ -198,30 +202,32 @@ class ProductosPanel(ttk.Frame):
         # Solo mostrar campos editables y válidos para el backend
         if valores:
             # Editar: mostrar código solo como label (no editable), no mostrar stock ni fecha_ingreso
+            # Se comenta el campo 'estado' para futura visualización
             campos = [
                 ("codigo_item", "Código"),
                 ("nombre_item", "Nombre"),
                 ("nombre_marca", "Marca"),
                 ("orden_compra", "Orden Compra"),
                 ("nombre_medida", "Medida"),
-                ("mayor", "Precio"),
+                ("mayor", "Mayor"),
                 ("sub_cta", "Subcuenta"),
-                ("fecha_vencimiento", "Fecha vencimiento"),
-                ("estado", "Estado")
+                ("fecha_vencimiento", "Fecha vencimiento")
+                # ("estado", "Estado")  # Comentado para futura visualización
             ]
         else:
             # Nuevo: pedir código y stock (ambos editables), no mostrar fecha_ingreso
+            # Se comenta el campo 'estado' para futura visualización
             campos = [
                 ("codigo_item", "Código"),
                 ("nombre_item", "Nombre"),
                 ("nombre_marca", "Marca"),
                 ("orden_compra", "Orden Compra"),
                 ("nombre_medida", "Medida"),
-                ("mayor", "Precio"),
+                ("mayor", "Mayor"),
                 ("sub_cta", "Subcuenta"),
                 ("stock_actual", "Stock inicial"),
-                ("fecha_vencimiento", "Fecha vencimiento"),
-                ("estado", "Estado")
+                ("fecha_vencimiento", "Fecha vencimiento")
+                # ("estado", "Estado")  # Comentado para futura visualización
             ]
         # El id nunca se muestra ni edita en el formulario
         entradas = {}
@@ -254,8 +260,7 @@ class ProductosPanel(ttk.Frame):
             id_interno = valores[0] if len(valores) > 0 else None
         else:
             id_interno = None
-        # Opciones posibles para estado
-        opciones_estado = ["activo", "inactivo", "baja", "pendiente", "agotado"]
+    # opciones_estado = ["activo", "inactivo", "baja", "pendiente", "agotado"]  # Comentado para futura visualización
         entry_style = {"background": "#ffffff", "foreground": "#111", "relief": "groove", "borderwidth": 2, "font": ("Segoe UI", 13), "insertbackground": "#111", "highlightthickness": 1, "highlightbackground": "#888", "highlightcolor": "#1976d2"}
         label_style = {"font": ("Segoe UI", 13, "bold"), "foreground": "#222", "bg": "#fff"}
         entry_padx = 10
@@ -279,37 +284,27 @@ class ProductosPanel(ttk.Frame):
                 ent = DateEntry(top, date_pattern='yyyy-mm-dd')
                 ent.configure(background="#ffffff", foreground="#111", borderwidth=2)
                 ent.place(x=entry_x, y=30 + i*38, width=entry_w, height=30)
-            elif campo == "estado":
-                ent = ttk.Combobox(top, values=opciones_estado, font=("Segoe UI", 13))
-                try:
-                    ent.configure(background="#ffffff", foreground="#111")
-                except Exception:
-                    pass
-                ent.place(x=entry_x, y=30 + i*38, width=entry_w, height=30)
             else:
                 ent = tk.Entry(top, **entry_style)
                 ent.place(x=entry_x, y=30 + i*38, width=entry_w, height=30)
             if valores_dict and campo in valores_dict:
                 if isinstance(ent, (tk.Entry, ttk.Combobox)):
                     ent.delete(0, 'end')
-                if campo == "estado":
-                    valor_estado = valores_dict[campo]
-                    if valor_estado not in opciones_estado:
-                        opciones_estado.append(valor_estado)
-                        ent['values'] = opciones_estado
-                    ent.set(valor_estado)
-                else:
-                    if isinstance(ent, (tk.Entry, ttk.Combobox)):
-                        ent.insert(0, valores_dict[campo])
+                if isinstance(ent, (tk.Entry, ttk.Combobox)):
+                    ent.insert(0, valores_dict[campo])
             entradas[campo] = ent
         def guardar():
             # Solo tomar los campos válidos y editables para la base de datos
             if valores:
                 # Editar: no enviar codigo_item, stock_actual ni fecha_ingreso
-                campos_db = ["nombre_item", "nombre_marca", "orden_compra", "nombre_medida", "mayor", "sub_cta", "fecha_vencimiento", "estado"]
+                # Se comenta 'estado' para futura visualización
+                campos_db = ["nombre_item", "nombre_marca", "orden_compra", "nombre_medida", "mayor", "sub_cta", "fecha_vencimiento"]
+                # "estado"  # Comentado para futura visualización
             else:
                 # Nuevo: enviar codigo_item, stock_actual y demás campos válidos
-                campos_db = ["codigo_item", "nombre_item", "nombre_marca", "orden_compra", "nombre_medida", "mayor", "sub_cta", "stock_actual", "fecha_vencimiento", "estado"]
+                # Se comenta 'estado' para futura visualización
+                campos_db = ["codigo_item", "nombre_item", "nombre_marca", "orden_compra", "nombre_medida", "mayor", "sub_cta", "stock_actual", "fecha_vencimiento"]
+                # "estado"  # Comentado para futura visualización
             datos = {}
             for k in campos_db:
                 widget = entradas.get(k)
@@ -321,9 +316,11 @@ class ProductosPanel(ttk.Frame):
             # Validación y conversión de tipos
             try:
                 if valores:
-                    obligatorios = ["nombre_item", "mayor", "estado"]
+                    obligatorios = ["nombre_item", "mayor"]
+                    # "estado"  # Comentado para futura visualización
                 else:
-                    obligatorios = ["codigo_item", "nombre_item", "mayor", "stock_actual", "estado"]
+                    obligatorios = ["codigo_item", "nombre_item", "mayor", "stock_actual"]
+                    # "estado"  # Comentado para futura visualización
                 for campo in obligatorios:
                     if not datos.get(campo) or not str(datos.get(campo)).strip():
                         raise ValueError(f"El campo '{campo}' es obligatorio.")
