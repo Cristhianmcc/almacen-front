@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from services.api import get, post
+from ui.styles import COLORS, FONTS, SPACING, DIMENSIONS, BUTTON_STYLES, ENTRY_STYLES, LABEL_STYLES, FRAME_STYLES, TABLE_STYLES
 
 class SobrantesPanel(ttk.Frame):
     def __init__(self, parent):
@@ -11,38 +12,81 @@ class SobrantesPanel(ttk.Frame):
 
     def create_widgets(self):
         self.configure(style='TFrame')
-        header = tk.Frame(self, bg="#43a047")
+        
+        # Header con color de éxito
+        header = tk.Frame(self, bg=COLORS['success'])
         header.pack(fill='x', pady=(0, 0))
-        tk.Label(header, text="Sobrantes de Inventario", font=("Segoe UI", 28, "bold"), fg="#fff", bg="#43a047").pack(anchor='center', pady=18)
-        filtro_frame = tk.Frame(self, bg="#f7f7f7")
-        filtro_frame.pack(fill='x', pady=10)
-        label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#1976d2", "bg": "#f7f7f7"}
-        entry_style = {"background": "#f3f6fb", "foreground": "#222", "relief": "flat", "borderwidth": 1, "font": ("Segoe UI", 12)}
+        tk.Label(header, text="Sobrantes de Inventario", 
+                font=FONTS['title_large'], 
+                fg=COLORS['surface'], 
+                bg=COLORS['success']).pack(anchor='center', pady=SPACING['lg'])
+        
+        # Frame de filtros
+        filtro_frame = tk.Frame(self, bg=COLORS['background'])
+        filtro_frame.pack(fill='x', pady=SPACING['md'])
+        
+        # Estilos para labels y entries
+        label_style = {"font": FONTS['heading_small'], "fg": COLORS['primary'], "bg": COLORS['background']}
+        entry_style = {"background": COLORS['surface'], "foreground": COLORS['text_primary'], 
+                      "relief": "flat", "borderwidth": 1, "font": FONTS['body_medium']}
+        
         tk.Label(filtro_frame, text="Buscar:", **label_style).pack(side='left')
         self.filtro_var = tk.StringVar()
-        tk.Entry(filtro_frame, textvariable=self.filtro_var, **entry_style).pack(side='left', padx=5)
-        tk.Button(filtro_frame, text="Buscar", command=self.cargar_sobrantes, bg="#1976d2", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=12, pady=4, activebackground="#1565c0").pack(side='left', padx=8)
-        tk.Button(filtro_frame, text="Nuevo Sobrante", command=self.nuevo_sobrante, bg="#ab47bc", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=12, pady=4, activebackground="#8e24aa").pack(side='left', padx=8)
-        tabla_frame = tk.Frame(self, bg="#f7f7f7")
-        tabla_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        tk.Entry(filtro_frame, textvariable=self.filtro_var, **entry_style).pack(side='left', padx=SPACING['sm'])
+        
+        # Botones con estilos centralizados
+        tk.Button(filtro_frame, text="Buscar", command=self.cargar_sobrantes, 
+                 bg=COLORS['primary'], fg=COLORS['surface'], 
+                 font=FONTS['button'], relief="flat", 
+                 padx=SPACING['md'], pady=SPACING['sm'], 
+                 activebackground=COLORS['primary_dark'],
+                 cursor="hand2").pack(side='left', padx=SPACING['sm'])
+        
+        tk.Button(filtro_frame, text="Nuevo Sobrante", command=self.nuevo_sobrante, 
+                 bg=COLORS['accent'], fg=COLORS['surface'], 
+                 font=FONTS['button'], relief="flat", 
+                 padx=SPACING['md'], pady=SPACING['sm'], 
+                 activebackground=COLORS['accent_dark'],
+                 cursor="hand2").pack(side='left', padx=SPACING['sm'])
+        
+        # Frame de tabla
+        tabla_frame = tk.Frame(self, bg=COLORS['background'])
+        tabla_frame.pack(fill='both', expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Configuración de estilos para Treeview
         style = ttk.Style()
-        style.configure("Treeview", font=("Segoe UI", 11), rowheight=28, background="#fff", fieldbackground="#fff")
-        style.configure("Treeview.Heading", font=("Segoe UI", 12, "bold"), background="#f5f5f5", foreground="#1976d2")
+        style.configure("Treeview", 
+                       font=FONTS['body_medium'], 
+                       rowheight=DIMENSIONS['table_row_height'], 
+                       background=COLORS['surface'], 
+                       fieldbackground=COLORS['surface'])
+        style.configure("Treeview.Heading", 
+                       font=FONTS['heading_small'], 
+                       background=COLORS['surface'], 
+                       foreground=COLORS['primary'])
+        
         columns = ("codigo_producto", "nombre_producto", "cantidad", "fecha_sobrante", "estado_envio")
+        
         # Scrollbars
         vsb = tk.Scrollbar(tabla_frame, orient="vertical", command=lambda *args: self.tabla.yview(*args))
         hsb = tk.Scrollbar(tabla_frame, orient="horizontal", command=lambda *args: self.tabla.xview(*args))
-        self.tabla = ttk.Treeview(tabla_frame, columns=columns, show='headings', style="Treeview", yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        
+        self.tabla = ttk.Treeview(tabla_frame, columns=columns, show='headings', 
+                                 style="Treeview", yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        
         for col in columns:
             self.tabla.heading(col, text=col.replace('_', ' ').capitalize())
             self.tabla.column(col, width=120, anchor='center')
-        self.tabla.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
+        
+        self.tabla.grid(row=0, column=0, sticky='nsew', padx=SPACING['md'], pady=SPACING['md'])
         vsb.grid(row=0, column=1, sticky='ns')
         hsb.grid(row=1, column=0, sticky='ew')
+        
         tabla_frame.grid_rowconfigure(0, weight=1)
         tabla_frame.grid_columnconfigure(0, weight=1)
+        
         self.lbl_status = ttk.Label(tabla_frame, text="Sobrantes cargados: 0")
-        self.lbl_status.grid(row=2, column=0, sticky='w', padx=5, pady=2)
+        self.lbl_status.grid(row=2, column=0, sticky='w', padx=SPACING['sm'], pady=SPACING['xs'])
 
     def cargar_sobrantes(self):
         try:
@@ -82,23 +126,37 @@ class SobrantesPanel(ttk.Frame):
         except Exception as e:
             messagebox.showerror("Error", str(e))
             return
+        
         top = tk.Toplevel(self)
         top.title("Registrar Sobrante de Inventario")
-        top.configure(bg="#f7f7f7")
-        frm = tk.Frame(top, bg="#f7f7f7")
-        frm.pack(padx=20, pady=20, fill='both', expand=True)
-        label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#43a047", "bg": "#f7f7f7"}
-        entry_style = {"background": "#f3f6fb", "foreground": "#222", "relief": "flat", "borderwidth": 1, "font": ("Segoe UI", 12)}
-        tk.Label(frm, text="Registrar Sobrante de Inventario", font=("Segoe UI", 18, "bold"), fg="#43a047", bg="#f7f7f7").grid(row=0, column=0, columnspan=2, pady=(0,18))
-        tk.Label(frm, text="Buscar producto:", **label_style).grid(row=1, column=0, sticky='e', padx=5, pady=7)
+        top.configure(bg=COLORS['background'])
+        
+        frm = tk.Frame(top, bg=COLORS['background'])
+        frm.pack(padx=SPACING['lg'], pady=SPACING['lg'], fill='both', expand=True)
+        
+        # Estilos para el formulario
+        label_style = {"font": FONTS['heading_small'], "fg": COLORS['success'], "bg": COLORS['background']}
+        entry_style = {"background": COLORS['surface'], "foreground": COLORS['text_primary'], 
+                      "relief": "flat", "borderwidth": 1, "font": FONTS['body_medium']}
+        
+        tk.Label(frm, text="Registrar Sobrante de Inventario", 
+                font=FONTS['title_medium'], 
+                fg=COLORS['success'], 
+                bg=COLORS['background']).grid(row=0, column=0, columnspan=2, pady=(0, SPACING['lg']))
+        
+        tk.Label(frm, text="Buscar producto:", **label_style).grid(row=1, column=0, sticky='e', padx=SPACING['sm'], pady=SPACING['sm'])
+        
         filtro_var = tk.StringVar()
         producto_var = tk.StringVar()
         codigos_full = [f"{p.get('codigo_item','')} - {p.get('nombre_item','')}" for p in productos_full]
         productos_filtrados = productos_full.copy()
         codigos_filtrados = codigos_full.copy()
-        producto_combo = ttk.Combobox(frm, textvariable=producto_var, values=codigos_filtrados, state="readonly", font=("Segoe UI", 11), width=38)
-        producto_combo.grid(row=2, column=1, padx=5, pady=7)
+        
+        producto_combo = ttk.Combobox(frm, textvariable=producto_var, values=codigos_filtrados, 
+                                     state="readonly", font=FONTS['body_medium'], width=38)
+        producto_combo.grid(row=2, column=1, padx=SPACING['sm'], pady=SPACING['sm'])
         producto_combo.current(0)
+        
         def filtrar_productos(*args):
             texto = filtro_var.get().lower()
             nonlocal productos_filtrados, codigos_filtrados
@@ -109,18 +167,23 @@ class SobrantesPanel(ttk.Frame):
                 producto_combo.current(0)
             else:
                 producto_combo.set("")
+        
         filtro_entry = tk.Entry(frm, textvariable=filtro_var, width=38, **entry_style)
-        filtro_entry.grid(row=1, column=1, padx=5, pady=7)
+        filtro_entry.grid(row=1, column=1, padx=SPACING['sm'], pady=SPACING['sm'])
         filtro_var.trace_add('write', filtrar_productos)
-        tk.Label(frm, text="Producto:", **label_style).grid(row=2, column=0, sticky='e', padx=5, pady=7)
-        tk.Label(frm, text="Cantidad sobrante:", **label_style).grid(row=3, column=0, sticky='e', padx=5, pady=7)
+        
+        tk.Label(frm, text="Producto:", **label_style).grid(row=2, column=0, sticky='e', padx=SPACING['sm'], pady=SPACING['sm'])
+        tk.Label(frm, text="Cantidad sobrante:", **label_style).grid(row=3, column=0, sticky='e', padx=SPACING['sm'], pady=SPACING['sm'])
+        
         cantidad_var = tk.StringVar()
         cantidad_entry = tk.Entry(frm, textvariable=cantidad_var, width=38, **entry_style)
-        cantidad_entry.grid(row=3, column=1, padx=5, pady=7)
-        tk.Label(frm, text="Observaciones:", **label_style).grid(row=4, column=0, sticky='e', padx=5, pady=7)
+        cantidad_entry.grid(row=3, column=1, padx=SPACING['sm'], pady=SPACING['sm'])
+        
+        tk.Label(frm, text="Observaciones:", **label_style).grid(row=4, column=0, sticky='e', padx=SPACING['sm'], pady=SPACING['sm'])
         obs_var = tk.StringVar()
         obs_entry = tk.Entry(frm, textvariable=obs_var, width=38, **entry_style)
-        obs_entry.grid(row=4, column=1, padx=5, pady=7)
+        obs_entry.grid(row=4, column=1, padx=SPACING['sm'], pady=SPACING['sm'])
+        
         def enviar():
             try:
                 idx = producto_combo.current()
@@ -146,7 +209,21 @@ class SobrantesPanel(ttk.Frame):
                     messagebox.showerror("Error", resp.message, parent=top)
             except Exception as e:
                 messagebox.showerror("Error", str(e), parent=top)
-        btn_frame = tk.Frame(frm, bg="#f7f7f7")
-        btn_frame.grid(row=6, column=0, columnspan=2, pady=18)
-        tk.Button(btn_frame, text="Guardar", command=enviar, bg="#43a047", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=6, activebackground="#388e3c").pack(side='left', padx=10)
-        tk.Button(btn_frame, text="Cancelar", command=top.destroy, bg="#d32f2f", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=6, activebackground="#b71c1c").pack(side='left', padx=10)
+        
+        btn_frame = tk.Frame(frm, bg=COLORS['background'])
+        btn_frame.grid(row=6, column=0, columnspan=2, pady=SPACING['lg'])
+        
+        # Botones con estilos centralizados
+        tk.Button(btn_frame, text="Guardar", command=enviar, 
+                 bg=COLORS['success'], fg=COLORS['surface'], 
+                 font=FONTS['button'], relief="flat", 
+                 padx=SPACING['md'], pady=SPACING['sm'], 
+                 activebackground=COLORS['success_dark'],
+                 cursor="hand2").pack(side='left', padx=SPACING['md'])
+        
+        tk.Button(btn_frame, text="Cancelar", command=top.destroy, 
+                 bg=COLORS['danger'], fg=COLORS['surface'], 
+                 font=FONTS['button'], relief="flat", 
+                 padx=SPACING['md'], pady=SPACING['sm'], 
+                 activebackground=COLORS['danger_dark'],
+                 cursor="hand2").pack(side='left', padx=SPACING['md'])

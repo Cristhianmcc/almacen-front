@@ -5,95 +5,284 @@ from tkcalendar import DateEntry
 import datetime
 
 class ReportesPanel(ttk.Frame):
+    # Paleta de colores profesional y moderna
+    COLORS = {
+        'primary': '#2563eb',      # Azul profesional principal
+        'primary_dark': '#1d4ed8', # Azul oscuro para hover
+        'secondary': '#64748b',    # Gris elegante secundario
+        'secondary_dark': '#475569', # Gris oscuro para hover
+        'success': '#059669',      # Verde suave para éxito
+        'success_dark': '#047857', # Verde oscuro para hover
+        'warning': '#d97706',      # Naranja cálido para advertencias
+        'warning_dark': '#b45309', # Naranja oscuro para hover
+        'danger': '#dc2626',       # Rojo profesional para peligro
+        'danger_dark': '#b91c1c',  # Rojo oscuro para hover
+        'background': '#f8fafc',   # Fondo muy claro y elegante
+        'surface': '#ffffff',      # Superficies blancas
+        'text_primary': '#1e293b', # Texto principal oscuro
+        'text_secondary': '#64748b', # Texto secundario
+        'border': '#e2e8f0',      # Bordes sutiles
+        'accent': '#8b5cf6'       # Acento púrpura para elementos especiales
+    }
+    
     def __init__(self, parent):
         super().__init__(parent)
         self.pack(fill='both', expand=True)
         self.create_widgets()
 
     def create_widgets(self):
-        header = tk.Frame(self, bg="#ab47bc")
+        # Header con gradiente sutil y sombra
+        header = tk.Frame(self, bg=self.COLORS['primary'])
         header.pack(fill='x', pady=(0, 0))
-        tk.Label(header, text="Reportes", font=("Segoe UI", 28, "bold"), fg="#fff", bg="#ab47bc").pack(anchor='center', pady=18)
         
-        # Frame de filtros por fechas
-        filtros_frame = tk.Frame(self, bg="#f7f7f7")
-        filtros_frame.pack(fill='x', pady=(10, 5))
+        # Título principal con mejor tipografía y espaciado reducido
+        title_label = tk.Label(
+            header, 
+            text="Reportes", 
+            font=("Segoe UI", 28, "bold"), 
+            fg=self.COLORS['surface'], 
+            bg=self.COLORS['primary']
+        )
+        title_label.pack(anchor='center', pady=16)  # Reducir de 24 a 16
         
-        # Título de filtros
-        tk.Label(filtros_frame, text="Filtros de Fecha:", font=("Segoe UI", 12, "bold"), 
-                fg="#ab47bc", bg="#f7f7f7").pack(anchor='center', pady=(5, 10))
+        # Frame de filtros con diseño más compacto
+        filtros_frame = tk.Frame(self, bg=self.COLORS['background'])
+        filtros_frame.pack(fill='x', pady=(8, 4))  # Reducir de (15, 8) a (8, 4)
         
-        # Frame para los campos de fecha
-        fechas_frame = tk.Frame(filtros_frame, bg="#f7f7f7")
-        fechas_frame.pack(anchor='center', pady=(0, 10))
+        # Título de filtros con mejor diseño y menos espacio
+        filtros_title = tk.Label(
+            filtros_frame, 
+            text="Filtros de Fecha", 
+            font=("Segoe UI", 13, "bold"), 
+            fg=self.COLORS['primary'], 
+            bg=self.COLORS['background']
+        )
+        filtros_title.pack(anchor='center', pady=(4, 8))  # Reducir de (8, 15) a (4, 8)
         
-        # Fecha desde
-        tk.Label(fechas_frame, text="Desde:", font=("Segoe UI", 11, "bold"), 
-                fg="#333", bg="#f7f7f7").pack(side='left', padx=(0, 5))
+        # Frame para los campos de fecha con mejor espaciado
+        fechas_frame = tk.Frame(filtros_frame, bg=self.COLORS['background'])
+        fechas_frame.pack(anchor='center', pady=(0, 8))  # Reducir de 15 a 8
+        
+        # Fecha desde con mejor diseño
+        tk.Label(
+            fechas_frame, 
+            text="Desde:", 
+            font=("Segoe UI", 11, "bold"), 
+            fg=self.COLORS['text_primary'], 
+            bg=self.COLORS['background']
+        ).pack(side='left', padx=(0, 6))  # Reducir de 8 a 6
         
         # Calcular fecha de hace 30 días por defecto
         fecha_desde = datetime.date.today() - datetime.timedelta(days=30)
         self.fecha_desde_var = tk.StringVar(value=fecha_desde.strftime('%Y-%m-%d'))
-        self.fecha_desde_entry = DateEntry(fechas_frame, textvariable=self.fecha_desde_var, 
-                                          date_pattern='yyyy-mm-dd', font=("Segoe UI", 11), 
-                                          width=12, background="#fff", foreground="#333")
-        self.fecha_desde_entry.pack(side='left', padx=(0, 20))
+        self.fecha_desde_entry = DateEntry(
+            fechas_frame, 
+            textvariable=self.fecha_desde_var, 
+            date_pattern='yyyy-mm-dd', 
+            font=("Segoe UI", 10), 
+            width=12,  # Reducir de 14 a 12
+            background=self.COLORS['surface'], 
+            foreground=self.COLORS['text_primary'],
+            borderwidth=1,
+            relief="solid"
+        )
+        self.fecha_desde_entry.pack(side='left', padx=(0, 20))  # Reducir de 25 a 20
         
-        # Fecha hasta
-        tk.Label(fechas_frame, text="Hasta:", font=("Segoe UI", 11, "bold"), 
-                fg="#333", bg="#f7f7f7").pack(side='left', padx=(0, 5))
+        # Fecha hasta con mejor diseño
+        tk.Label(
+            fechas_frame, 
+            text="Hasta:", 
+            font=("Segoe UI", 11, "bold"), 
+            fg=self.COLORS['text_primary'], 
+            bg=self.COLORS['background']
+        ).pack(side='left', padx=(0, 6))  # Reducir de 8 a 6
         
         # Fecha de hoy por defecto
         fecha_hasta = datetime.date.today()
         self.fecha_hasta_var = tk.StringVar(value=fecha_hasta.strftime('%Y-%m-%d'))
-        self.fecha_hasta_entry = DateEntry(fechas_frame, textvariable=self.fecha_hasta_var, 
-                                          date_pattern='yyyy-mm-dd', font=("Segoe UI", 11), 
-                                          width=12, background="#fff", foreground="#333")
-        self.fecha_hasta_entry.pack(side='left', padx=(0, 20))
+        self.fecha_hasta_entry = DateEntry(
+            fechas_frame, 
+            textvariable=self.fecha_hasta_var, 
+            date_pattern='yyyy-mm-dd', 
+            font=("Segoe UI", 10), 
+            width=12,  # Reducir de 14 a 12
+            background=self.COLORS['surface'], 
+            foreground=self.COLORS['text_primary'],
+            borderwidth=1,
+            relief="solid"
+        )
+        self.fecha_hasta_entry.pack(side='left', padx=(0, 20))  # Reducir de 25 a 20
         
-        # Botón para aplicar filtros
-        tk.Button(fechas_frame, text="Aplicar Filtros", command=self.aplicar_filtros_fecha, 
-                 bg="#ab47bc", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", 
-                 padx=16, pady=6, activebackground="#8e24aa", cursor="hand2").pack(side='left')
+        # Botón para aplicar filtros con mejor diseño
+        apply_btn = tk.Button(
+            fechas_frame, 
+            text="Aplicar Filtros", 
+            command=self.aplicar_filtros_fecha, 
+            bg=self.COLORS['success'], 
+            fg=self.COLORS['surface'], 
+            font=("Segoe UI", 11, "bold"), 
+            relief="flat", 
+            padx=16,  # Reducir de 20 a 16
+            pady=6,   # Reducir de 8 a 6
+            activebackground=self.COLORS['success_dark'], 
+            cursor="hand2",
+            borderwidth=0
+        )
+        apply_btn.pack(side='left')
         
-        # Botón para limpiar filtros
-        tk.Button(fechas_frame, text="Limpiar Filtros", command=self.limpiar_filtros_fecha, 
-                 bg="#757575", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", 
-                 padx=16, pady=6, activebackground="#616161", cursor="hand2").pack(side='left', padx=(10, 0))
+        # Botón para limpiar filtros con mejor diseño
+        clear_btn = tk.Button(
+            fechas_frame, 
+            text="Limpiar Filtros", 
+            command=self.limpiar_filtros_fecha, 
+            bg=self.COLORS['secondary'], 
+            fg=self.COLORS['surface'], 
+            font=("Segoe UI", 11, "bold"), 
+            relief="flat", 
+            padx=16,  # Reducir de 20 a 16
+            pady=6,   # Reducir de 8 a 6
+            activebackground=self.COLORS['secondary_dark'], 
+            cursor="hand2",
+            borderwidth=0
+        )
+        clear_btn.pack(side='left', padx=(12, 0))  # Reducir de 15 a 12
         
-        self.configure(style='TFrame')
-        btn_frame = tk.Frame(self, bg="#f7f7f7")
-        btn_frame.pack(fill='x', pady=10)
-        btn_style = {"fg": "#fff", "font": ("Segoe UI", 12, "bold"), "relief": "flat", "padx": 14, "pady": 6}
-        tk.Button(btn_frame, text="Reporte Inventario", command=self.reporte_inventario, bg="#1976d2", activebackground="#1565c0", **btn_style).pack(side='left', padx=8, pady=4)
-        tk.Button(btn_frame, text="Reporte Movimientos", command=self.reporte_movimientos, bg="#43a047", activebackground="#388e3c", **btn_style).pack(side='left', padx=8, pady=4)
-        # tk.Button(btn_frame, text="Reporte SIGA", command=self.reporte_siga, bg="#ab47bc", activebackground="#8e24aa", **btn_style).pack(side='left', padx=8, pady=4)
+        # Frame de botones de reportes con mejor diseño y menos espacio
+        btn_frame = tk.Frame(self, bg=self.COLORS['background'])
+        btn_frame.pack(fill='x', pady=8)  # Reducir de 15 a 8
+        
+        # Estilo mejorado para botones
+        btn_style = {
+            "fg": self.COLORS['surface'], 
+            "font": ("Segoe UI", 12, "bold"),  # Reducir de 13 a 12
+            "relief": "flat", 
+            "padx": 16,  # Reducir de 18 a 16
+            "pady": 6,   # Reducir de 8 a 6
+            "borderwidth": 0,
+            "cursor": "hand2"
+        }
+        
+        # Botones de reportes con colores más profesionales
+        inventory_btn = tk.Button(
+            btn_frame, 
+            text="Reporte Inventario", 
+            command=self.reporte_inventario, 
+            bg=self.COLORS['primary'], 
+            activebackground=self.COLORS['primary_dark'], 
+            **btn_style
+        )
+        inventory_btn.pack(side='left', padx=8, pady=4)  # Reducir de (10, 6) a (8, 4)
+        
+        movements_btn = tk.Button(
+            btn_frame, 
+            text="Reporte Movimientos", 
+            command=self.reporte_movimientos, 
+            bg=self.COLORS['success'], 
+            activebackground=self.COLORS['success_dark'], 
+            **btn_style
+        )
+        movements_btn.pack(side='left', padx=8, pady=4)  # Reducir de (10, 6) a (8, 4)
 
-        export_frame = tk.Frame(self, bg="#f7f7f7")
-        export_frame.pack(fill='x', pady=(0, 0))
-        tk.Button(export_frame, text="Exportar PDF", command=self.exportar_pdf, bg="#d32f2f", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=12, pady=4, activebackground="#b71c1c").pack(side='left', padx=8)
-        tk.Button(export_frame, text="Exportar Excel", command=self.exportar_excel, bg="#1976d2", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=12, pady=4, activebackground="#1565c0").pack(side='left', padx=8)
-        tk.Button(export_frame, text="Imprimir", command=self.imprimir_reporte, bg="#43a047", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=12, pady=4, activebackground="#388e3c").pack(side='left', padx=8)
+        # Frame de exportación con mejor diseño y menos espacio
+        export_frame = tk.Frame(self, bg=self.COLORS['background'])
+        export_frame.pack(fill='x', pady=(0, 8))  # Reducir de (0, 15) a (0, 8)
+        
+        # Botones de exportación con colores más profesionales
+        export_btn_style = {
+            "font": ("Segoe UI", 11, "bold"),  # Reducir de 12 a 11
+            "relief": "flat", 
+            "padx": 14,  # Reducir de 16 a 14
+            "pady": 5,   # Reducir de 6 a 5
+            "borderwidth": 0,
+            "cursor": "hand2"
+        }
+        
+        pdf_btn = tk.Button(
+            export_frame, 
+            text="Exportar PDF", 
+            command=self.exportar_pdf, 
+            bg=self.COLORS['danger'], 
+            fg=self.COLORS['surface'], 
+            activebackground=self.COLORS['danger_dark'],
+            **export_btn_style
+        )
+        pdf_btn.pack(side='left', padx=8, pady=3)  # Reducir de (10, 4) a (8, 3)
+        
+        excel_btn = tk.Button(
+            export_frame, 
+            text="Exportar Excel", 
+            command=self.exportar_excel, 
+            bg=self.COLORS['primary'], 
+            fg=self.COLORS['surface'], 
+            activebackground=self.COLORS['primary_dark'],
+            **export_btn_style
+        )
+        excel_btn.pack(side='left', padx=8, pady=3)  # Reducir de (10, 4) a (8, 3)
+        
+        print_btn = tk.Button(
+            export_frame, 
+            text="Imprimir", 
+            command=self.imprimir_reporte, 
+            bg=self.COLORS['success'], 
+            fg=self.COLORS['surface'], 
+            activebackground=self.COLORS['success_dark'],
+            **export_btn_style
+        )
+        print_btn.pack(side='left', padx=8, pady=3)  # Reducir de (10, 4) a (8, 3)
 
-        self.result_frame = tk.Frame(self, bg="#f7f7f7", bd=1, relief="flat")
-        self.result_frame.pack(fill='both', expand=True, padx=20, pady=20)
-        self.txt_result = tk.Text(self.result_frame, height=20, bg="#ffffff", fg="#222", font=("Segoe UI", 11), relief="solid", borderwidth=1)
-        self.txt_result.pack(fill='both', expand=True, padx=10, pady=10)
+        # Frame de resultados con mejor diseño y más espacio
+        self.result_frame = tk.Frame(
+            self, 
+            bg=self.COLORS['surface'], 
+            bd=1, 
+            relief="solid",
+            highlightbackground=self.COLORS['border'],
+            highlightthickness=1
+        )
+        self.result_frame.pack(fill='both', expand=True, padx=20, pady=12)  # Reducir de (25, 20) a (20, 12)
+        
+        # Configurar grid para mejor distribución del espacio
+        self.result_frame.columnconfigure(0, weight=1)
+        self.result_frame.rowconfigure(0, weight=1)
+        
+        # Texto de resultado con mejor diseño y más espacio
+        self.txt_result = tk.Text(
+            self.result_frame, 
+            height=30,  # Aumentar de 25 a 30 para más espacio
+            bg=self.COLORS['surface'], 
+            fg=self.COLORS['text_primary'], 
+            font=("Segoe UI", 11), 
+            relief="flat", 
+            borderwidth=0,
+            padx=15,
+            pady=15
+        )
+        self.txt_result.pack(fill='both', expand=True, padx=15, pady=15)
         self.tree_result = None
         
         # Variables para almacenar datos filtrados
         self.datos_filtrados = []
         self.filtros_activos = False
         
-        # Label para mostrar estado de filtros
-        self.lbl_filtros = tk.Label(filtros_frame, text="", font=("Segoe UI", 10), 
-                                   fg="#666", bg="#f7f7f7")
-        self.lbl_filtros.pack(anchor='center', pady=(0, 5))
+        # Label para mostrar estado de filtros con mejor diseño
+        self.lbl_filtros = tk.Label(
+            filtros_frame, 
+            text="", 
+            font=("Segoe UI", 10),  # Reducir de 11 a 10
+            fg=self.COLORS['success'], 
+            bg=self.COLORS['background']
+        )
+        self.lbl_filtros.pack(anchor='center', pady=(0, 4))  # Reducir de 8 a 4
         
-        # Label para mostrar estadísticas de filtros
-        self.lbl_stats = tk.Label(filtros_frame, text="", font=("Segoe UI", 9), 
-                                 fg="#888", bg="#f7f7f7")
-        self.lbl_stats.pack(anchor='center', pady=(0, 5))
+        # Label para mostrar estadísticas de filtros con mejor diseño
+        self.lbl_stats = tk.Label(
+            filtros_frame, 
+            text="", 
+            font=("Segoe UI", 9),  # Reducir de 10 a 9
+            fg=self.COLORS['text_secondary'], 
+            bg=self.COLORS['background']
+        )
+        self.lbl_stats.pack(anchor='center', pady=(0, 4))  # Reducir de 8 a 4
 
     def reporte_inventario(self):
         self.mostrar_reporte("/products")
@@ -515,10 +704,10 @@ class ReportesPanel(ttk.Frame):
             if self.filtros_activos and hasattr(self, 'datos_originales'):
                 total_original = len(self.datos_originales)
                 tk.Label(top, text=f"Total de registros a imprimir: {total_registros} de {total_original}", 
-                        font=("Segoe UI", 10), fg="#666").pack(pady=5)
+                        font=("Segoe UI", 10), fg=self.COLORS['text_secondary']).pack(pady=5)
             else:
                 tk.Label(top, text=f"Total de registros a imprimir: {total_registros}", 
-                        font=("Segoe UI", 10), fg="#666").pack(pady=5)
+                        font=("Segoe UI", 10), fg=self.COLORS['text_secondary']).pack(pady=5)
         except Exception as e:
             messagebox.showerror("Imprimir", str(e))
 
@@ -531,9 +720,9 @@ class ReportesPanel(ttk.Frame):
                 porcentaje = (total_filtrado / total_original * 100) if total_original > 0 else 0
                 
                 stats_text = f"Total registros: {total_original} | Filtrados: {total_filtrado} ({porcentaje:.1f}%)"
-                self.lbl_stats.config(text=stats_text, fg="#666")
+                self.lbl_stats.config(text=stats_text, fg=self.COLORS['text_secondary'])
         except Exception as e:
-            self.lbl_stats.config(text="", fg="#888")
+            self.lbl_stats.config(text="", fg=self.COLORS['text_secondary'])
 
     def cargar_reportes(self):
         """Método para recargar reportes (llamado desde main_window)"""
@@ -556,7 +745,7 @@ class ReportesPanel(ttk.Frame):
             self.filtros_activos = True
             
             # Actualizar label de estado
-            self.lbl_filtros.config(text=f"Filtros activos: {fecha_desde} hasta {fecha_hasta}", fg="#ab47bc")
+            self.lbl_filtros.config(text=f"Filtros activos: {fecha_desde} hasta {fecha_hasta}", fg=self.COLORS['success'])
             
             # Si ya hay datos cargados, aplicar filtros
             if hasattr(self, 'current_table_data') and self.current_table_data:
@@ -589,10 +778,10 @@ class ReportesPanel(ttk.Frame):
             self.filtros_activos = False
             
             # Limpiar label de estado
-            self.lbl_filtros.config(text="", fg="#666")
+            self.lbl_filtros.config(text="", fg=self.COLORS['text_secondary'])
             
             # Limpiar estadísticas
-            self.lbl_stats.config(text="", fg="#888")
+            self.lbl_stats.config(text="", fg=self.COLORS['text_secondary'])
             
             # Si hay datos originales, restaurarlos
             if hasattr(self, 'datos_originales') and self.datos_originales:
@@ -716,45 +905,82 @@ class ReportesPanel(ttk.Frame):
                 
                 # Crear la tabla con los títulos de las columnas
                 col_titles = [title for _, title in self.column_mapping]
-                self.tree_result = ttk.Treeview(self.result_frame, columns=col_titles, show='headings', style="Treeview")
+                self.tree_result = ttk.Treeview(
+                    self.result_frame, 
+                    columns=col_titles, 
+                    show='headings', 
+                    style="Treeview",
+                    height=25  # Aumentar altura para más espacio vertical
+                )
                 
-                # Configurar columnas
+                # Configurar columnas con mejor diseño y ancho optimizado
                 for _, title in self.column_mapping:
                     self.tree_result.heading(title, text=title, anchor='center')
-                    self.tree_result.column(title, width=120, anchor='center')
+                    # Ancho más generoso y adaptativo para las columnas
+                    base_width = max(140, len(title) * 10)  # Reducir multiplicador de 12 a 10
+                    self.tree_result.column(title, width=base_width, anchor='center', minwidth=100, stretch=True)
                 
                 # Insertar datos filtrados usando las claves correctas
                 for i, row in enumerate(self.current_table_data):
                     values = [row.get(key, '') for key, _ in self.column_mapping]
                     print(f"DEBUG: Fila {i}: {values}")
-                    self.tree_result.insert('', 'end', values=values)
+                    # Aplicar tags para filas alternadas
+                    tag = 'oddrow' if i % 2 == 0 else 'evenrow'
+                    self.tree_result.insert('', 'end', values=values, tags=(tag,))
                 
             else:
                 # Fallback: usar columnas directamente (para compatibilidad)
                 print(f"DEBUG: No hay mapeo de columnas, usando columnas directamente: {self.current_table_columns}")
-                self.tree_result = ttk.Treeview(self.result_frame, columns=self.current_table_columns, show='headings', style="Treeview")
+                self.tree_result = ttk.Treeview(
+                    self.result_frame, 
+                    columns=self.current_table_columns, 
+                    show='headings', 
+                    style="Treeview",
+                    height=25  # Aumentar altura para más espacio vertical
+                )
                 
-                # Configurar columnas
+                # Configurar columnas con mejor diseño y ancho optimizado
                 for col in self.current_table_columns:
                     self.tree_result.heading(col, text=col, anchor='center')
-                    self.tree_result.column(col, width=120, anchor='center')
+                    base_width = max(140, len(col) * 10)  # Reducir multiplicador de 12 a 10
+                    self.tree_result.column(col, width=base_width, anchor='center', minwidth=100, stretch=True)
                 
                 # Insertar datos filtrados
                 for i, row in enumerate(self.current_table_data):
                     values = [row.get(col, '') for col in self.current_table_columns]
                     print(f"DEBUG: Fila {i}: {values}")
-                    self.tree_result.insert('', 'end', values=values)
+                    tag = 'oddrow' if i % 2 == 0 else 'evenrow'
+                    self.tree_result.insert('', 'end', values=values, tags=(tag,))
             
-            self.tree_result.pack(fill='both', expand=True, padx=10, pady=10)
+            # Configurar estilos de la tabla para mejor apariencia
+            self.tree_result.tag_configure('oddrow', background=self.COLORS['background'])
+            self.tree_result.tag_configure('evenrow', background=self.COLORS['surface'])
             
-            # Mostrar contador de registros filtrados
+            # Agregar scrollbars para mejor navegación
+            vsb = ttk.Scrollbar(self.result_frame, orient="vertical", command=self.tree_result.yview)
+            hsb = ttk.Scrollbar(self.result_frame, orient="horizontal", command=self.tree_result.xview)
+            self.tree_result.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+            
+            # Empaquetar tabla y scrollbars con mejor layout usando grid para mejor control
+            self.tree_result.grid(row=0, column=0, sticky='nsew', padx=15, pady=15)
+            vsb.grid(row=0, column=1, sticky='ns')
+            hsb.grid(row=1, column=0, sticky='ew')
+            
+            # Configurar pesos del grid para mejor distribución del espacio
+            self.result_frame.grid_columnconfigure(0, weight=1)
+            self.result_frame.grid_rowconfigure(0, weight=1)
+            
+            # Mostrar contador de registros filtrados con mejor diseño
             total_registros = len(self.current_table_data)
             if self.filtros_activos and hasattr(self, 'datos_originales'):
                 total_original = len(self.datos_originales)
                 # Obtener las fechas de los filtros activos
                 fecha_desde_str = self.fecha_desde_var.get()
                 fecha_hasta_str = self.fecha_hasta_var.get()
-                self.lbl_filtros.config(text=f"Filtros activos: {fecha_desde_str} hasta {fecha_hasta_str} | Mostrando {total_registros} de {total_original} registros", fg="#ab47bc")
+                self.lbl_filtros.config(
+                    text=f"Filtros activos: {fecha_desde_str} hasta {fecha_hasta_str} | Mostrando {total_registros} de {total_original} registros", 
+                    fg=self.COLORS['success']
+                )
                 # Actualizar estadísticas
                 self.actualizar_estadisticas_filtros()
         else:

@@ -1,22 +1,23 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from services.api import get, post
+from ui.styles import COLORS, FONTS, BUTTON_STYLES, ENTRY_STYLES, LABEL_STYLES, FRAME_STYLES, TABLE_STYLES, SPACING, DIMENSIONS
 
 class MovimientosPanel(ttk.Frame):
     def create_widgets(self):
-        # Header verde con ícono
-        header = tk.Frame(self, bg="#43a047")
+        # Header verde con ícono usando la paleta de colores
+        header = tk.Frame(self, bg=COLORS['success'])
         header.pack(fill='x', pady=(0, 0))
-        header_inner = tk.Frame(header, bg="#43a047")
-        header_inner.pack(anchor='center', pady=10)
-        tk.Label(header_inner, text="🔄", font=("Segoe UI Emoji", 32), fg="#fff", bg="#43a047").pack(side='left', padx=(0, 12))
-        tk.Label(header_inner, text="Movimientos de Inventario", font=("Segoe UI", 28, "bold"), fg="#fff", bg="#43a047").pack(side='left')
+        header_inner = tk.Frame(header, bg=COLORS['success'])
+        header_inner.pack(anchor='center', pady=SPACING['md'])
+        tk.Label(header_inner, text="🔄", font=("Segoe UI Emoji", 32), fg=COLORS['surface'], bg=COLORS['success']).pack(side='left', padx=(0, 12))
+        tk.Label(header_inner, text="Movimientos de Inventario", font=FONTS['title_medium'], fg=COLORS['surface'], bg=COLORS['success']).pack(side='left')
 
         # Barra de búsqueda y actualizar, centrada y moderna
-        search_frame = tk.Frame(self, bg="#f7f7f7")
-        search_frame.pack(pady=(10, 18))
-        label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#333", "bg": "#f7f7f7"}
-        entry_style = {"background": "#fff", "foreground": "#222", "relief": "solid", "borderwidth": 2, "font": ("Segoe UI", 12)}
+        search_frame = tk.Frame(self, bg=COLORS['background'])
+        search_frame.pack(pady=(SPACING['md'], SPACING['lg']))
+        label_style = {"font": FONTS['heading_small'], "fg": COLORS['text_primary'], "bg": COLORS['background']}
+        entry_style = {"background": COLORS['surface'], "foreground": COLORS['text_primary'], "relief": "solid", "borderwidth": 2, "font": FONTS['body_medium']}
         self.filtro_var = tk.StringVar()
         self.fecha_var = tk.StringVar()
         from tkcalendar import DateEntry
@@ -25,25 +26,25 @@ class MovimientosPanel(ttk.Frame):
         self.fecha_var.set(hoy)
         tk.Label(search_frame, text="Buscar:", **label_style).pack(side='left', padx=(0, 5))
         tk.Entry(search_frame, textvariable=self.filtro_var, **entry_style, width=24).pack(side='left', padx=(0, 10))
-        tk.Button(search_frame, text="Buscar", command=self.cargar_movimientos, bg="#43a047", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=4, activebackground="#388e3c").pack(side='left')
+        tk.Button(search_frame, text="Buscar", command=self.cargar_movimientos, bg=COLORS['success'], fg=COLORS['surface'], font=FONTS['button'], relief="flat", padx=16, pady=4, activebackground=COLORS['success_dark']).pack(side='left')
         tk.Label(search_frame, text="Filtrar por fecha:", **label_style).pack(side='left', padx=(10, 5))
-        self.fecha_entry = DateEntry(search_frame, textvariable=self.fecha_var, date_pattern='yyyy-mm-dd', font=("Segoe UI", 12), width=12)
+        self.fecha_entry = DateEntry(search_frame, textvariable=self.fecha_var, date_pattern='yyyy-mm-dd', font=FONTS['body_medium'], width=12)
         self.fecha_entry.pack(side='left', padx=(0, 10))
-        tk.Button(search_frame, text="Filtrar", command=self.cargar_movimientos, bg="#1976d2", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=4, activebackground="#1565c0").pack(side='left')
+        tk.Button(search_frame, text="Filtrar", command=self.cargar_movimientos, bg=COLORS['primary'], fg=COLORS['surface'], font=FONTS['button'], relief="flat", padx=16, pady=4, activebackground=COLORS['primary_dark']).pack(side='left')
       
 
         # Botones de registrar entrada/salida
         btn_frame = ttk.Frame(self)
-        btn_frame.pack(fill='x', pady=10)
+        btn_frame.pack(fill='x', pady=SPACING['md'])
         ttk.Button(btn_frame, text="Registrar Entrada", command=self.registrar_entrada).pack(side='left', padx=10)
         ttk.Button(btn_frame, text="Registrar Salida", command=self.registrar_salida).pack(side='left', padx=10)
 
         # Tabla de movimientos
-        tabla_frame = tk.Frame(self, bg="#f7f7f7")
-        tabla_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        tabla_frame = tk.Frame(self, bg=COLORS['background'])
+        tabla_frame.pack(fill='both', expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
         style = ttk.Style()
-        style.configure("Treeview", font=("Segoe UI", 11), rowheight=28, background="#fff", fieldbackground="#fff")
-        style.configure("Treeview.Heading", font=("Segoe UI", 12, "bold"), background="#e3f2fd")
+        style.configure("Treeview", font=FONTS['body_medium'], rowheight=28, background=COLORS['surface'], fieldbackground=COLORS['surface'])
+        style.configure("Treeview.Heading", font=FONTS['heading_small'], background=COLORS['background'])
         # Columnas ocultas: id, usuario, motivo, destino
         # self.tabla = ttk.Treeview(tabla_frame, columns=("id", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"), show='headings', style="Treeview")
         # for col in ("id", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"):
@@ -75,24 +76,38 @@ class MovimientosPanel(ttk.Frame):
         except Exception as e:
             messagebox.showerror("Error", str(e))
             return
-        # Diseño visual mejorado
+        # Diseño visual mejorado usando la paleta de colores
         top = tk.Toplevel(self)
         top.title(f"Registrar {'Entrada' if tipo=='entrada' else 'Salida'} de Stock")
-        top.configure(bg="#f7f7f7")
-        frm = tk.Frame(top, bg="#f7f7f7")
-        frm.pack(padx=20, pady=20, fill='both', expand=True)
-        label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#1976d2", "bg": "#f7f7f7"}
-        entry_style = {"background": "#f3f6fb", "foreground": "#222", "relief": "flat", "borderwidth": 1, "font": ("Segoe UI", 12)}
-        tk.Label(frm, text=f"Registrar {'Entrada' if tipo=='entrada' else 'Salida'} de Stock", font=("Segoe UI", 18, "bold"), fg="#1976d2", bg="#f7f7f7").grid(row=0, column=0, columnspan=2, pady=(0,18))
+        top.configure(bg=COLORS['background'])
+        frm = tk.Frame(top, bg=COLORS['background'])
+        frm.pack(padx=SPACING['lg'], pady=SPACING['lg'], fill='both', expand=True)
+        
+        # Título del formulario
+        titulo = tk.Label(
+            frm, 
+            text=f"Registrar {'Entrada' if tipo=='entrada' else 'Salida'} de Stock", 
+            font=FONTS['title_small'], 
+            fg=COLORS['primary'], 
+            bg=COLORS['background']
+        )
+        titulo.grid(row=0, column=0, columnspan=2, pady=(0, SPACING['lg']))
+        
+        # Estilos para labels y entradas
+        label_style = {"font": FONTS['heading_small'], "fg": COLORS['primary'], "bg": COLORS['background']}
+        entry_style = {"background": COLORS['background'], "foreground": COLORS['text_primary'], "relief": "flat", "borderwidth": 1, "font": FONTS['body_medium']}
+        
+        # Campo de búsqueda
         tk.Label(frm, text="Buscar producto:", **label_style).grid(row=1, column=0, sticky='e', padx=5, pady=7)
         filtro_var = tk.StringVar()
         producto_var = tk.StringVar()
         codigos_full = [f"{p.get('codigo_item','')} - {p.get('nombre_item','')}" for p in productos_full]
         productos_filtrados = productos_full.copy()
         codigos_filtrados = codigos_full.copy()
-        producto_combo = ttk.Combobox(frm, textvariable=producto_var, values=codigos_filtrados, state="readonly", font=("Segoe UI", 11), width=38)
+        producto_combo = ttk.Combobox(frm, textvariable=producto_var, values=codigos_filtrados, state="readonly", font=FONTS['body_medium'], width=38)
         producto_combo.grid(row=2, column=1, padx=5, pady=7)
         producto_combo.current(0)
+        
         def filtrar_productos(*args):
             texto = filtro_var.get().lower()
             nonlocal productos_filtrados, codigos_filtrados
@@ -103,18 +118,26 @@ class MovimientosPanel(ttk.Frame):
                 producto_combo.current(0)
             else:
                 producto_combo.set("")
+        
         filtro_entry = tk.Entry(frm, textvariable=filtro_var, width=38, **entry_style)
         filtro_entry.grid(row=1, column=1, padx=5, pady=7)
         filtro_var.trace_add('write', filtrar_productos)
+        
+        # Campo de producto
         tk.Label(frm, text="Producto:", **label_style).grid(row=2, column=0, sticky='e', padx=5, pady=7)
+        
+        # Campo de cantidad
         tk.Label(frm, text="Cantidad:", **label_style).grid(row=3, column=0, sticky='e', padx=5, pady=7)
         cantidad_var = tk.StringVar()
         cantidad_entry = tk.Entry(frm, textvariable=cantidad_var, width=38, **entry_style)
         cantidad_entry.grid(row=3, column=1, padx=5, pady=7)
+        
+        # Campo de observaciones
         tk.Label(frm, text="Observaciones:", **label_style).grid(row=4, column=0, sticky='e', padx=5, pady=7)
         obs_var = tk.StringVar()
         obs_entry = tk.Entry(frm, textvariable=obs_var, width=38, **entry_style)
         obs_entry.grid(row=4, column=1, padx=5, pady=7)
+        
         def enviar():
             try:
                 idx = producto_combo.current()
@@ -159,72 +182,48 @@ class MovimientosPanel(ttk.Frame):
                     messagebox.showerror("Error", resp.message, parent=top)
             except Exception as e:
                 messagebox.showerror("Error", str(e), parent=top)
-        btn_frame = tk.Frame(frm, bg="#f7f7f7")
-        btn_frame.grid(row=5, column=0, columnspan=2, pady=18)
-        tk.Button(btn_frame, text="Guardar", command=enviar, bg="#1976d2", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=6, activebackground="#1565c0").pack(side='left', padx=10)
-        tk.Button(btn_frame, text="Cancelar", command=top.destroy, bg="#d32f2f", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=6, activebackground="#b71c1c").pack(side='left', padx=10)
+        
+        # Frame de botones con estilos mejorados
+        btn_frame = tk.Frame(frm, bg=COLORS['background'])
+        btn_frame.grid(row=5, column=0, columnspan=2, pady=SPACING['lg'])
+        
+        # Botón Guardar
+        btn_guardar = tk.Button(
+            btn_frame, 
+            text="Guardar", 
+            command=enviar, 
+            bg=COLORS['primary'], 
+            fg=COLORS['surface'], 
+            font=FONTS['button'], 
+            relief="flat", 
+            padx=16, 
+            pady=6, 
+            activebackground=COLORS['primary_dark'],
+            cursor="hand2"
+        )
+        btn_guardar.pack(side='left', padx=10)
+        
+        # Botón Cancelar
+        btn_cancelar = tk.Button(
+            btn_frame, 
+            text="Cancelar", 
+            command=top.destroy, 
+            bg=COLORS['danger'], 
+            fg=COLORS['surface'], 
+            font=FONTS['button'], 
+            relief="flat", 
+            padx=16, 
+            pady=6, 
+            activebackground=COLORS['danger_dark'],
+            cursor="hand2"
+        )
+        btn_cancelar.pack(side='left', padx=10)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.pack(fill='both', expand=True)
         self.create_widgets()
         self.cargar_movimientos()
-
-    def create_widgets(self):
-        # Header azul
-        header = tk.Frame(self, bg="#1976d2")
-        header.pack(fill='x', pady=(0, 0))
-        tk.Label(header, text="Movimientos de Inventario", font=("Segoe UI", 28, "bold"), fg="#fff", bg="#1976d2").pack(anchor='center', pady=18)
-
-        # Barra de búsqueda y actualizar, centrada y moderna
-        search_frame = tk.Frame(self, bg="#f7f7f7")
-        search_frame.pack(pady=(10, 18))
-        label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#333", "bg": "#f7f7f7"}
-        entry_style = {"background": "#fff", "foreground": "#222", "relief": "solid", "borderwidth": 2, "font": ("Segoe UI", 12)}
-        self.filtro_var = tk.StringVar() 
-        self.fecha_var = tk.StringVar()
-        from tkcalendar import DateEntry
-        import datetime
-        hoy = datetime.date.today().strftime('%Y-%m-%d')
-        self.fecha_var.set(hoy)
-        tk.Label(search_frame, text="Buscar:", **label_style).pack(side='left', padx=(0, 5))
-        tk.Entry(search_frame, textvariable=self.filtro_var, **entry_style, width=24).pack(side='left', padx=(0, 10))
-        tk.Label(search_frame, text="Filtrar por fecha:", **label_style).pack(side='left', padx=(10, 5))
-        self.fecha_entry = DateEntry(search_frame, textvariable=self.fecha_var, date_pattern='yyyy-mm-dd', font=("Segoe UI", 12), width=12)
-        self.fecha_entry.pack(side='left', padx=(0, 10))
-        tk.Button(search_frame, text="Filtrar", command=self.cargar_movimientos, bg="#1976d2", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=4, activebackground="#1565c0").pack(side='left')
-        tk.Button(search_frame, text="Buscar", command=self.cargar_movimientos, bg="#43a047", fg="#fff", font=("Segoe UI", 11, "bold"), relief="flat", padx=16, pady=4, activebackground="#388e3c").pack(side='left')
-
-        # Botones de registrar entrada/salida
-        btn_frame = ttk.Frame(self)
-        btn_frame.pack(fill='x', pady=10)
-        ttk.Button(btn_frame, text="Registrar Entrada", command=self.registrar_entrada).pack(side='left', padx=10)
-        ttk.Button(btn_frame, text="Registrar Salida", command=self.registrar_salida).pack(side='left', padx=10)
-
-        # Tabla de movimientos
-        tabla_frame = tk.Frame(self, bg="#f7f7f7")
-        tabla_frame.pack(fill='both', expand=True, padx=20, pady=20)
-        style = ttk.Style()
-        style.configure("Treeview", font=("Segoe UI", 11), rowheight=28, background="#fff", fieldbackground="#fff")
-        style.configure("Treeview.Heading", font=("Segoe UI", 12, "bold"), background="#e3f2fd")
-        # Columnas ocultas: id, usuario, motivo, destino
-        # self.tabla = ttk.Treeview(tabla_frame, columns=("id", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"), show='headings', style="Treeview")
-        # for col in ("id", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario", "observaciones", "motivo", "destino"):
-        #     self.tabla.heading(col, text=col.replace('_', ' ').capitalize())
-        # Scrollbars
-        vsb = tk.Scrollbar(tabla_frame, orient="vertical", command=lambda *args: self.tabla.yview(*args))
-        hsb = tk.Scrollbar(tabla_frame, orient="horizontal", command=lambda *args: self.tabla.xview(*args))
-        self.tabla = ttk.Treeview(tabla_frame, columns=("codigo_producto", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "observaciones"), show='headings', style="Treeview", yscrollcommand=vsb.set, xscrollcommand=hsb.set)
-        for col in ("codigo_producto", "nombre_producto", "tipo_movimiento", "cantidad", "fecha_movimiento", "observaciones"):
-            self.tabla.heading(col, text=col.replace('_', ' ').capitalize())
-            self.tabla.column(col, anchor='center')
-        self.tabla.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
-        vsb.grid(row=0, column=1, sticky='ns')
-        hsb.grid(row=1, column=0, sticky='ew')
-        tabla_frame.grid_rowconfigure(0, weight=1)
-        tabla_frame.grid_columnconfigure(0, weight=1)
-        self.lbl_status = ttk.Label(tabla_frame, text="Movimientos cargados: 0")
-        self.lbl_status.grid(row=2, column=0, sticky='w', padx=5, pady=2)
-
 
     def cargar_movimientos(self):
         try:

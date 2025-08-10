@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-
+from ui.styles import COLORS, FONTS, SPACING, DIMENSIONS
 
 from ui.dashboard_panel import DashboardPanel
 from ui.productos_panel import ProductosPanel
@@ -11,159 +11,322 @@ from ui.sobrantes_panel import SobrantesPanel
 from ui.reportes_panel import ReportesPanel
 
 
-def run_app():
-    root = tk.Tk()
-    root.title("Sistema de Almacén - Instituto Lurín")
-    # Hacer la ventana responsiva
-    root.geometry("1200x750")
-    root.minsize(900, 600)
-    root.rowconfigure(0, weight=1)
-    root.columnconfigure(0, weight=1)
-
-    # Tema visual profesional y responsivo
-    style = ttk.Style(root)
-    style.theme_use('clam')
-    style.configure('.', background='#f7f7f7', foreground='#222', font=("Segoe UI", 11))
-    style.configure('TNotebook', background='#e9ecef', borderwidth=0)
-    style.configure('TNotebook.Tab', background='#e9ecef', foreground='#222', padding=10, font=("Segoe UI", 12, "bold"))
-    style.map('TNotebook.Tab', background=[('selected', '#ffffff')])
-    style.configure('TFrame', background='#f7f7f7')
-    style.configure('TLabel', background='#f7f7f7', foreground='#222', font=("Segoe UI", 12))
-    style.configure('TButton', background='#1976d2', foreground='#fff', font=("Segoe UI", 11, "bold"), borderwidth=0, padding=8)
-    style.map('TButton', background=[('active', '#1565c0')], foreground=[('active', '#fff')])
-    style.configure('Treeview', background='#ffffff', fieldbackground='#ffffff', foreground='#222', rowheight=32, font=("Segoe UI", 12))
-    style.configure('Treeview.Heading', background='#1976d2', foreground='#fff', font=("Segoe UI", 13, "bold"))
-    style.map('Treeview', background=[('selected', '#e3f2fd')], foreground=[('selected', '#111')])
-
-    # Menú superior
-    menubar = tk.Menu(root)
-    root.config(menu=menubar)
-    archivo_menu = tk.Menu(menubar, tearoff=0)
-    menubar.add_cascade(label="Archivo", menu=archivo_menu)
-    archivo_menu.add_command(label="Salir", command=root.quit)
-
-    # Menú superior
-    menubar = tk.Menu(root)
-    root.config(menu=menubar)
-    archivo_menu = tk.Menu(menubar, tearoff=0)
-    menubar.add_cascade(label="Archivo", menu=archivo_menu)
-    archivo_menu.add_command(label="Salir", command=root.quit)
-
-
-
-    # Barra de navegación moderna y responsiva
-    nav_frame = tk.Frame(root, bg="#fff")
-    nav_frame.pack(fill='x', side='top')
-    # Frame principal para los paneles
-    main_frame = ttk.Frame(root)
-    main_frame.pack(fill='both', expand=True)
-    main_frame.rowconfigure(0, weight=1)
-    main_frame.columnconfigure(0, weight=1)
-    nav_tabs = [
-        ("Dashboard", "dashboard_tab"),
-        ("Productos", "productos_tab"),
-        ("Movimientos", "movimientos_tab"),
-        ("Alertas", "alertas_tab"),
-        ("Bajas", "bajas_tab"),
-        ("Sobrantes", "sobrantes_tab"),
-        ("Reportes", "reportes_tab")
-    ]
-    tab_frames = {}
-    active_tab = tk.StringVar(value="Dashboard")
-    def switch_tab(tab_name):
-        for name, frame in tab_frames.items():
-            frame.grid_remove()
-        tab_frames[tab_name].grid(row=0, column=0, sticky="nsew")
-        active_tab.set(tab_name)
-        for btn in nav_frame.winfo_children():
-            if getattr(btn, 'tab_name', None) == tab_name:
-                btn.configure(bg="#1976d2", fg="#fff", font=("Segoe UI", 12, "bold"))
-            else:
-                btn.configure(bg="#fff", fg="#1976d2", font=("Segoe UI", 12, "bold"))
-    nav_btns = []
-    for name, var in nav_tabs:
-        btn = tk.Button(nav_frame, text=name, bd=0, relief="flat", padx=18, pady=8, bg="#fff", fg="#1976d2", font=("Segoe UI", 12, "bold"), activebackground="#e3f2fd", activeforeground="#1976d2", cursor="hand2", highlightthickness=0, highlightbackground="#fff")
-        btn.tab_name = name
-        btn.pack(side='left', padx=(0, 2), pady=0)
-        btn.configure(command=lambda n=name: switch_tab(n))
-        nav_btns.append(btn)
-    # Botón Actualizar general al costado de Reportes
-    def actualizar_todo():
-        # Llama a cargar_movimientos y métodos de refresco de cada panel si existen
+class MainWindow:
+    
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Sistema de Almacén - Instituto")
+        self.root.geometry("1400x900")
+        self.root.minsize(1200, 800)
+        
+        # Configurar icono si está disponible
         try:
-            if hasattr(tab_frames["Movimientos"], 'children'):
-                for w in tab_frames["Movimientos"].winfo_children():
-                    if hasattr(w, 'cargar_movimientos'):
-                        w.cargar_movimientos()
-            if hasattr(tab_frames["Productos"], 'children'):
-                for w in tab_frames["Productos"].winfo_children():
-                    if hasattr(w, 'cargar_productos'):
-                        w.cargar_productos()
-            if hasattr(tab_frames["Alertas"], 'children'):
-                for w in tab_frames["Alertas"].winfo_children():
-                    if hasattr(w, 'cargar_alertas'):
-                        w.cargar_alertas()
-            if hasattr(tab_frames["Bajas"], 'children'):
-                for w in tab_frames["Bajas"].winfo_children():
-                    if hasattr(w, 'cargar_bajas'):
-                        w.cargar_bajas()
-            if hasattr(tab_frames["Sobrantes"], 'children'):
-                for w in tab_frames["Sobrantes"].winfo_children():
-                    if hasattr(w, 'cargar_sobrantes'):
-                        w.cargar_sobrantes()
-            if hasattr(tab_frames["Reportes"], 'children'):
-                for w in tab_frames["Reportes"].winfo_children():
-                    if hasattr(w, 'cargar_reportes'):
-                        w.cargar_reportes()
-            if hasattr(tab_frames["Dashboard"], 'children'):
-                for w in tab_frames["Dashboard"].winfo_children():
-                    if hasattr(w, 'cargar_dashboard'):
-                        w.cargar_dashboard()
-        except Exception as e:
-            messagebox.showerror("Error", f"Error al actualizar: {e}")
-    # Botón Actualizar general destacado
-    # Botón Actualizar general con ícono y diseño especial
-    actualizar_btn = tk.Button(
-        nav_frame,
-        text="🔄 Actualizar",
-        bd=0,
-        relief="groove",
-        padx=20,
-        pady=8,
-        bg="#ff9800",
-        fg="#fff",
-        font=("Segoe UI", 13, "bold"),
-        activebackground="#fb8c00",
-        activeforeground="#fff",
-        cursor="hand2",
-        highlightthickness=3,
-        highlightbackground="#fff3e0",
-        highlightcolor="#fff3e0",
-        command=actualizar_todo
-    )
-    actualizar_btn.pack(side='left', padx=(24, 0), pady=0)
-    # Crear frames para cada panel y hacerlos responsivos dentro de main_frame
-    for tab in ["Dashboard", "Productos", "Movimientos", "Alertas", "Bajas", "Sobrantes", "Reportes"]:
-        frame = ttk.Frame(main_frame)
-        frame.grid(row=0, column=0, sticky="nsew")
-        frame.grid_remove()
-        tab_frames[tab] = frame
-    # Inicializar paneles dentro de cada frame
-    from ui.dashboard_panel import DashboardPanel
-    from ui.productos_panel import ProductosPanel
-    from ui.movimientos_panel import MovimientosPanel
-    from ui.alertas_panel import AlertasPanel
-    from ui.bajas_panel import BajasPanel
-    from ui.sobrantes_panel import SobrantesPanel
-    from ui.reportes_panel import ReportesPanel
+            self.root.iconbitmap("ui/img/icono.ico")
+        except:
+            pass
+        
+        # Configurar estilo global
+        self.setup_styles()
+        
+        # Crear interfaz
+        self.create_widgets()
+        
+        # Configurar eventos
+        self.setup_events()
+        
+        # Cargar dashboard por defecto
+        self.show_dashboard()
 
-    DashboardPanel(tab_frames["Dashboard"])
-    ProductosPanel(tab_frames["Productos"])
-    MovimientosPanel(tab_frames["Movimientos"])
-    AlertasPanel(tab_frames["Alertas"])
-    BajasPanel(tab_frames["Bajas"])
-    SobrantesPanel(tab_frames["Sobrantes"])
-    ReportesPanel(tab_frames["Reportes"])
-    # Mostrar el tab inicial
-    switch_tab("Dashboard")
-    root.mainloop()
+    def setup_styles(self):
+        """Configura estilos globales de la aplicación"""
+        style = ttk.Style()
+        
+        # Configurar tema y colores
+        style.theme_use('clam')
+        
+        # Estilo para el notebook (pestañas)
+        style.configure(
+            'TNotebook', 
+            background=COLORS['background'],
+            borderwidth=0
+        )
+        style.configure(
+            'TNotebook.Tab', 
+            background=COLORS['surface'],
+            foreground=COLORS['text_primary'],
+            padding=[20, 12],
+            font=FONTS['button']
+        )
+        style.map(
+            'TNotebook.Tab',
+            background=[
+                ('selected', COLORS['primary']),
+                ('active', COLORS['primary_dark'])
+            ],
+            foreground=[
+                ('selected', COLORS['surface']),
+                ('active', COLORS['surface'])
+            ]
+        )
+        
+        # Estilo para frames
+        style.configure(
+            'TFrame', 
+            background=COLORS['background']
+        )
+        
+        # Estilo para botones
+        style.configure(
+            'TButton',
+            background=COLORS['primary'],
+            foreground=COLORS['surface'],
+            font=FONTS['button'],
+            padding=[16, 8]
+        )
+        style.map(
+            'TButton',
+            background=[
+                ('active', COLORS['primary_dark']),
+                ('pressed', COLORS['primary_dark'])
+            ]
+        )
+
+    def create_widgets(self):
+        """Crea todos los widgets de la interfaz principal"""
+        # Configurar color de fondo principal
+        self.root.configure(bg=COLORS['background'])
+        
+        # Header principal con mejor diseño
+        header = tk.Frame(
+            self.root, 
+            bg=COLORS['primary'], 
+            height=80,
+            relief="flat"
+        )
+        header.pack(fill='x', pady=0)
+        header.pack_propagate(False)
+        
+        # Título principal con mejor tipografía
+        title_label = tk.Label(
+            header, 
+            text="Sistema de Almacén", 
+            font=FONTS['title_large'], 
+            fg=COLORS['surface'], 
+            bg=COLORS['primary']
+        )
+        title_label.pack(anchor='center', pady=20)
+        
+        # Subtitle con información del instituto
+        subtitle_label = tk.Label(
+            header, 
+            text="Instituto de Educación Superior", 
+            font=FONTS['body_large'], 
+            fg=COLORS['surface'], 
+            bg=COLORS['primary']
+        )
+        subtitle_label.pack(anchor='center', pady=(0, 15))
+        
+        # Frame principal para contenido
+        self.main_frame = tk.Frame(
+            self.root, 
+            bg=COLORS['background'],
+            relief="flat"
+        )
+        self.main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # Notebook (pestañas) con mejor diseño
+        self.notebook = ttk.Notebook(
+            self.main_frame, 
+            style='TNotebook'
+        )
+        self.notebook.pack(fill='both', expand=True, padx=0, pady=0)
+        
+        # Crear paneles con mejor diseño
+        self.create_panels()
+        
+        # Barra de estado con mejor diseño
+        self.create_status_bar()
+
+    def create_panels(self):
+        """Crea todos los paneles de la aplicación"""
+        # Panel de Dashboard
+        self.dashboard_panel = DashboardPanel(self.notebook)
+        self.notebook.add(
+            self.dashboard_panel, 
+            text="📊 Dashboard", 
+            padding=[10, 15]
+        )
+        
+        # Panel de Productos
+        self.productos_panel = ProductosPanel(self.notebook)
+        self.notebook.add(
+            self.productos_panel, 
+            text="📦 Productos", 
+            padding=[10, 15]
+        )
+        
+        # Panel de Movimientos
+        self.movimientos_panel = MovimientosPanel(self.notebook)
+        self.notebook.add(
+            self.movimientos_panel, 
+            text="🔄 Movimientos", 
+            padding=[10, 15]
+        )
+        
+        # Panel de Bajas
+        self.bajas_panel = BajasPanel(self.notebook)
+        self.notebook.add(
+            self.bajas_panel, 
+            text="🗑️ Bajas", 
+            padding=[10, 15]
+        )
+        
+        # Panel de Sobrantes
+        self.sobrantes_panel = SobrantesPanel(self.notebook)
+        self.notebook.add(
+            self.sobrantes_panel, 
+            text="➕ Sobrantes", 
+            padding=[10, 15]
+        )
+        
+        # Panel de Alertas
+        self.alertas_panel = AlertasPanel(self.notebook)
+        self.notebook.add(
+            self.alertas_panel, 
+            text="⚠️ Alertas", 
+            padding=[10, 15]
+        )
+        
+        # Panel de Reportes
+        self.reportes_panel = ReportesPanel(self.notebook)
+        self.notebook.add(
+            self.reportes_panel, 
+            text="📋 Reportes", 
+            padding=[10, 15]
+        )
+
+    def create_status_bar(self):
+        """Crea la barra de estado inferior"""
+        status_frame = tk.Frame(
+            self.root, 
+            bg=COLORS['surface'],
+            height=30,
+            relief="solid",
+            bd=1,
+            highlightbackground=COLORS['border'],
+            highlightthickness=1
+        )
+        status_frame.pack(fill='x', side='bottom', pady=0)
+        status_frame.pack_propagate(False)
+        
+        # Información de estado
+        status_label = tk.Label(
+            status_frame, 
+            text="Sistema listo | Usuario: Administrador", 
+            font=FONTS['caption'], 
+            fg=COLORS['text_secondary'], 
+            bg=COLORS['surface']
+        )
+        status_label.pack(side='left', padx=15, pady=5)
+        
+        # Indicador de estado
+        status_indicator = tk.Label(
+            status_frame, 
+            text="●", 
+            font=FONTS['body_medium'], 
+            fg=COLORS['success'], 
+            bg=COLORS['surface']
+        )
+        status_indicator.pack(side='right', padx=15, pady=5)
+
+    def setup_events(self):
+        """Configura eventos de la aplicación"""
+        # Evento de cambio de pestaña
+        self.notebook.bind('<<NotebookTabChanged>>', self.on_tab_changed)
+        
+        # Evento de cierre de ventana
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+        # Evento de redimensionamiento
+        self.root.bind('<Configure>', self.on_resize)
+
+    def on_tab_changed(self, event):
+        """Maneja el cambio de pestañas"""
+        current_tab = self.notebook.select()
+        tab_name = self.notebook.tab(current_tab, "text")
+        
+        # Actualizar barra de estado
+        if hasattr(self, 'status_label'):
+            self.status_label.config(text=f"Pestaña activa: {tab_name}")
+        
+        # Cargar datos específicos según la pestaña
+        if "Dashboard" in tab_name:
+            self.show_dashboard()
+        elif "Productos" in tab_name:
+            self.show_productos()
+        elif "Movimientos" in tab_name:
+            self.show_movimientos()
+        elif "Bajas" in tab_name:
+            self.show_bajas()
+        elif "Sobrantes" in tab_name:
+            self.show_sobrantes()
+        elif "Alertas" in tab_name:
+            self.show_alertas()
+        elif "Reportes" in tab_name:
+            self.show_reportes()
+
+    def on_resize(self, event):
+        """Maneja el redimensionamiento de la ventana"""
+        # Aquí se pueden agregar lógicas de redimensionamiento responsivo
+        pass
+
+    def on_closing(self):
+        """Maneja el cierre de la aplicación"""
+        # Aquí se pueden agregar lógicas de limpieza antes de cerrar
+        self.root.destroy()
+
+    # Métodos para mostrar cada panel
+    def show_dashboard(self):
+        """Muestra el panel de dashboard"""
+        if hasattr(self.dashboard_panel, 'cargar_estadisticas'):
+            self.dashboard_panel.cargar_estadisticas()
+
+    def show_productos(self):
+        """Muestra el panel de productos"""
+        if hasattr(self.productos_panel, 'cargar_productos'):
+            self.productos_panel.cargar_productos()
+
+    def show_movimientos(self):
+        """Muestra el panel de movimientos"""
+        if hasattr(self.movimientos_panel, 'cargar_movimientos'):
+            self.movimientos_panel.cargar_movimientos()
+
+    def show_bajas(self):
+        """Muestra el panel de bajas"""
+        if hasattr(self.bajas_panel, 'cargar_bajas'):
+            self.bajas_panel.cargar_bajas()
+
+    def show_sobrantes(self):
+        """Muestra el panel de sobrantes"""
+        if hasattr(self.sobrantes_panel, 'cargar_sobrantes'):
+            self.sobrantes_panel.cargar_sobrantes()
+
+    def show_alertas(self):
+        """Muestra el panel de alertas"""
+        if hasattr(self.alertas_panel, 'cargar_alertas'):
+            self.alertas_panel.cargar_alertas()
+
+    def show_reportes(self):
+        """Muestra el panel de reportes"""
+        if hasattr(self.reportes_panel, 'cargar_reportes'):
+            self.reportes_panel.cargar_reportes()
+
+    def run(self):
+        """Ejecuta la aplicación"""
+        self.root.mainloop()
+
+
+def run_app():
+    """Función principal para ejecutar la aplicación"""
+    app = MainWindow()
+    app.run()

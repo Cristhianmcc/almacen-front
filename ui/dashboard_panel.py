@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from services.api import get
+from ui.styles import COLORS, FONTS, SPACING, DIMENSIONS
 
 class DashboardPanel(ttk.Frame):
     def __init__(self, parent):
@@ -10,42 +11,137 @@ class DashboardPanel(ttk.Frame):
         self.cargar_estadisticas()
 
     def create_widgets(self):
-        card_min_width = 260
-        max_cards_per_row = 3
+        # Configurar el frame principal
         self.configure(style='TFrame')
-        self.lbl_title = ttk.Label(self, text="Estadísticas Generales", font=("Segoe UI", 28, "bold"), background="#f7f7f7", foreground="#1565c0")
-        self.lbl_title.pack(pady=(30, 10), anchor='center', fill='x')
+        
+        # Título principal con mejor diseño - más compacto
+        self.lbl_title = tk.Label(
+            self, 
+            text="Estadísticas Generales", 
+            font=FONTS['title_large'], 
+            background=COLORS['background'], 
+            foreground=COLORS['primary']
+        )
+        self.lbl_title.pack(pady=(SPACING['lg'], SPACING['md']), anchor='center', fill='x')
+        
         self.stats = {}
-        stats_frame = tk.Frame(self, bg="#f7f7f7")
-        stats_frame.pack(fill='both', expand=True, pady=10)
-        stats_frame.columnconfigure((0,1,2), weight=1)
+        
+        # Frame principal para las estadísticas con mejor layout - más compacto
+        stats_frame = tk.Frame(self, bg=COLORS['background'])
+        stats_frame.pack(fill='both', expand=True, padx=SPACING['md'], pady=SPACING['sm'])
+        
+        # Configurar grid para mejor distribución y responsividad
+        stats_frame.columnconfigure((0, 1, 2), weight=1, uniform='col')
+        stats_frame.rowconfigure((0, 1), weight=1, uniform='row')
+        
+        # Información de las tarjetas con colores más profesionales
         cards_info = [
-            {"campo": "Total Productos", "color": "#1976d2", "icon": "📦", "desc": "Productos activos en inventario"},
-            {"campo": "Total Movimientos", "color": "#43a047", "icon": "🔄", "desc": "Entradas y salidas registradas"},
-            {"campo": "Total Bajas", "color": "#ff7043", "icon": "🗑️", "desc": "Productos dados de baja"},
-            {"campo": "Total Sobrantes", "color": "#ab47bc", "icon": "➕", "desc": "Sobrantes en almacén"},
-            {"campo": "Total Alertas", "color": "#d32f2f", "icon": "⚠️", "desc": "Alertas activas"},
+            {
+                "campo": "Total Productos", 
+                "color": COLORS['primary'], 
+                "icon": "📦", 
+                "desc": "Productos activos en inventario"
+            },
+            {
+                "campo": "Total Movimientos", 
+                "color": COLORS['success'], 
+                "icon": "🔄", 
+                "desc": "Entradas y salidas registradas"
+            },
+            {
+                "campo": "Total Bajas", 
+                "color": COLORS['warning'], 
+                "icon": "🗑️", 
+                "desc": "Productos dados de baja"
+            },
+            {
+                "campo": "Total Sobrantes", 
+                "color": COLORS['accent'], 
+                "icon": "➕", 
+                "desc": "Sobrantes en almacén"
+            },
+            {
+                "campo": "Total Alertas", 
+                "color": COLORS['danger'], 
+                "icon": "⚠️", 
+                "desc": "Alertas activas"
+            },
         ]
-        card_max_width = 340
-        card_height = 200
+        
         self.card_widgets = []
+        
         for i, info in enumerate(cards_info):
-            row = i // max_cards_per_row
-            col = i % max_cards_per_row
-            card = tk.Frame(stats_frame, bg="#fff", bd=0, highlightbackground=info["color"], highlightthickness=3)
-            card.grid(row=row, column=col, padx=18, pady=12, sticky="nsew")
-            stats_frame.grid_columnconfigure(col, weight=1, minsize=card_min_width)
-            card.grid_propagate(0)
-            # Icono
-            icon_lbl = tk.Label(card, text=info["icon"], font=("Segoe UI Emoji", 36), bg="#fff")
-            icon_lbl.pack(pady=(18,0))
-            # Valor grande (fuente más pequeña si el texto es largo)
-            self.stats[info["campo"]] = tk.Label(card, text="-", font=("Segoe UI", 22, "bold"), bg="#fff", fg=info["color"], wraplength=card_max_width-24, justify="center")
-            self.stats[info["campo"]].pack(pady=(0,0))
-            # Título
-            tk.Label(card, text=info["campo"], font=("Segoe UI", 13, "bold"), bg="#fff", fg=info["color"], wraplength=card_max_width-24, justify="center").pack()
-            # Descripción
-            tk.Label(card, text=info["desc"], font=("Segoe UI", 10), bg="#fff", fg="#888", wraplength=card_max_width-24, justify="center").pack(pady=(0,12))
+            row = i // 3
+            col = i % 3
+            
+            # Crear tarjeta con mejor diseño y sombras - más compacta
+            card = tk.Frame(
+                stats_frame, 
+                bg=COLORS['surface'], 
+                bd=0, 
+                highlightbackground=info["color"], 
+                highlightthickness=2,
+                relief="flat"
+            )
+            card.grid(row=row, column=col, padx=SPACING['sm'], pady=SPACING['sm'], sticky='nsew')
+            
+            # Configurar grid interno de la tarjeta para expansión
+            card.columnconfigure(0, weight=1)
+            card.rowconfigure(1, weight=1)
+            
+            # Icono con mejor tamaño y espaciado - más pequeño
+            icon_lbl = tk.Label(
+                card, 
+                text=info["icon"], 
+                font=("Segoe UI Emoji", 36), 
+                bg=COLORS['surface']
+            )
+            icon_lbl.grid(row=0, column=0, pady=(SPACING['md'], SPACING['xs']))
+            
+            # Frame para el contenido de la tarjeta
+            content_frame = tk.Frame(card, bg=COLORS['surface'])
+            content_frame.grid(row=1, column=0, sticky='nsew', padx=SPACING['sm'])
+            
+            # Configurar grid interno del content_frame
+            content_frame.columnconfigure(0, weight=1)
+            content_frame.rowconfigure(1, weight=1)
+            content_frame.rowconfigure(2, weight=1)
+            content_frame.rowconfigure(3, weight=1)
+            
+            # Valor grande con mejor tipografía - más compacto
+            self.stats[info["campo"]] = tk.Label(
+                content_frame, 
+                text="-", 
+                font=FONTS['title_medium'], 
+                bg=COLORS['surface'], 
+                fg=info["color"], 
+                justify="center"
+            )
+            self.stats[info["campo"]].grid(row=1, column=0, pady=(0, SPACING['xs']), sticky='ew')
+            
+            # Título con mejor diseño - más compacto
+            title_label = tk.Label(
+                content_frame, 
+                text=info["campo"], 
+                font=FONTS['heading_small'], 
+                bg=COLORS['surface'], 
+                fg=info["color"], 
+                justify="center"
+            )
+            title_label.grid(row=2, column=0, pady=(0, SPACING['xs']), sticky='ew')
+            
+            # Descripción con mejor tipografía - más compacta
+            desc_label = tk.Label(
+                content_frame, 
+                text=info["desc"], 
+                font=FONTS['body_small'], 
+                bg=COLORS['surface'], 
+                fg=COLORS['text_secondary'], 
+                justify="center",
+                wraplength=250
+            )
+            desc_label.grid(row=3, column=0, pady=(0, SPACING['sm']), sticky='ew')
+            
             self.card_widgets.append(card)
 
     def cargar_estadisticas(self):
@@ -64,5 +160,6 @@ class DashboardPanel(ttk.Frame):
         except Exception as e:
             for campo in self.stats:
                 self.stats[campo].config(text=f"Error: {e}")
+    
     def cargar_dashboard(self):
         self.cargar_estadisticas()

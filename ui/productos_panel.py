@@ -3,6 +3,26 @@ from tkinter import ttk, messagebox
 from services.api import get, post, put, delete
 
 class ProductosPanel(ttk.Frame):
+    # Paleta de colores profesional y moderna
+    COLORS = {
+        'primary': '#2563eb',      # Azul profesional principal
+        'primary_dark': '#1d4ed8', # Azul oscuro para hover
+        'secondary': '#64748b',    # Gris elegante secundario
+        'secondary_dark': '#475569', # Gris oscuro para hover
+        'success': '#059669',      # Verde suave para éxito
+        'success_dark': '#047857', # Verde oscuro para hover
+        'warning': '#d97706',      # Naranja cálido para advertencias
+        'warning_dark': '#b45309', # Naranja oscuro para hover
+        'danger': '#dc2626',       # Rojo profesional para peligro
+        'danger_dark': '#b91c1c',  # Rojo oscuro para hover
+        'background': '#f8fafc',   # Fondo muy claro y elegante
+        'surface': '#ffffff',      # Superficies blancas
+        'text_primary': '#1e293b', # Texto principal oscuro
+        'text_secondary': '#64748b', # Texto secundario
+        'border': '#e2e8f0',      # Bordes sutiles
+        'accent': '#8b5cf6'       # Acento púrpura para elementos especiales
+    }
+    
     def __init__(self, parent):
         super().__init__(parent)
         self.pack(fill='both', expand=True)
@@ -10,69 +30,158 @@ class ProductosPanel(ttk.Frame):
         self.cargar_productos()
 
     def create_widgets(self):
-        # Encabezado profesional y responsivo
-        header = tk.Frame(self, bg="#1976d2")
+        # Encabezado profesional y responsivo con mejor diseño
+        header = tk.Frame(self, bg=self.COLORS['primary'])
         header.pack(fill='x', pady=(0, 0))
-        tk.Label(header, text="Gestión de Productos", font=("Segoe UI", 28, "bold"), fg="#fff", bg="#1976d2").pack(anchor='center', pady=18)
-        # Leyenda visual elegante
-        legend_frame = tk.Frame(self, bg="#f7f7f7")
-        legend_frame.pack(fill='x', pady=(0, 10))
+        
+        header_label = tk.Label(
+            header, 
+            text="Gestión de Productos", 
+            font=("Segoe UI", 32, "bold"), 
+            fg=self.COLORS['surface'], 
+            bg=self.COLORS['primary']
+        )
+        header_label.pack(anchor='center', pady=24)
+        
+        # Leyenda visual elegante con mejor diseño
+        legend_frame = tk.Frame(self, bg=self.COLORS['background'])
+        legend_frame.pack(fill='x', pady=(0, 15))
+        
         leyendas = [
-            ("#ff4d4d", "● Stock bajo"),
-            ("#4caf50", "● Stock normal"),
-            ("#ff9800", "● Próxima expiración")
+            (self.COLORS['danger'], "● Stock bajo"),
+            (self.COLORS['success'], "● Stock normal"),
+            (self.COLORS['warning'], "● Próxima expiración")
         ]
+        
         for color, texto in leyendas:
-            lbl = tk.Label(legend_frame, text=texto, fg=color, bg="#f7f7f7", font=("Segoe UI", 12, "bold"))
-            lbl.pack(side='left', padx=18, pady=6)
+            lbl = tk.Label(
+                legend_frame, 
+                text=texto, 
+                fg=color, 
+                bg=self.COLORS['background'], 
+                font=("Segoe UI", 13, "bold")
+            )
+            lbl.pack(side='left', padx=20, pady=8)
+        
         # Barra de búsqueda y botones mejorada
-        filtro_frame = tk.Frame(self, bg="#f7f7f7")
-        filtro_frame.pack(fill='x', padx=0, pady=(0, 0))
-        search_card = tk.Frame(filtro_frame, bg="#fff", highlightbackground="#e0e0e0", highlightthickness=1)
-        search_card.pack(padx=24, pady=10, fill='x')
-        search_card.configure(bd=0)
-        label_style = {"font": ("Segoe UI", 12, "bold"), "fg": "#1976d2", "bg": "#fff"}
-        entry_style = {"background": "#f3f6fb", "foreground": "#222", "relief": "flat", "borderwidth": 1, "font": ("Segoe UI", 12)}
-        tk.Label(search_card, text="Buscar:", **label_style).pack(side='left', padx=(16, 6), pady=10)
+        filtro_frame = tk.Frame(self, bg=self.COLORS['background'])
+        filtro_frame.pack(fill='x', padx=0, pady=(0, 15))
+        
+        search_card = tk.Frame(
+            filtro_frame, 
+            bg=self.COLORS['surface'], 
+            highlightbackground=self.COLORS['border'], 
+            highlightthickness=1,
+            relief="flat"
+        )
+        search_card.pack(padx=25, pady=12, fill='x')
+        
+        label_style = {
+            "font": ("Segoe UI", 13, "bold"), 
+            "fg": self.COLORS['primary'], 
+            "bg": self.COLORS['surface']
+        }
+        
+        entry_style = {
+            "background": self.COLORS['background'], 
+            "foreground": self.COLORS['text_primary'], 
+            "relief": "flat", 
+            "borderwidth": 1, 
+            "font": ("Segoe UI", 12)
+        }
+        
+        tk.Label(
+            search_card, 
+            text="Buscar:", 
+            **label_style
+        ).pack(side='left', padx=(18, 8), pady=12)
+        
         self.filtro_var = tk.StringVar()
-        entry = tk.Entry(search_card, textvariable=self.filtro_var, **entry_style)
-        entry.pack(side='left', padx=(0, 12), ipady=2, ipadx=2, pady=10, fill='x', expand=True)
+        entry = tk.Entry(
+            search_card, 
+            textvariable=self.filtro_var, 
+            **entry_style
+        )
+        entry.pack(side='left', padx=(0, 15), ipady=4, ipadx=4, pady=12, fill='x', expand=True)
+        
         # Agrupar botones en un frame para mejor alineación
-        btn_group = tk.Frame(search_card, bg="#fff")
-        btn_group.pack(side='left', padx=(0, 0), pady=6)
-        btn_style = {"font": ("Segoe UI", 11, "bold"), "fg": "#fff", "relief": "flat", "padx": 12, "pady": 4, "bd": 0, "activeforeground": "#fff"}
+        btn_group = tk.Frame(search_card, bg=self.COLORS['surface'])
+        btn_group.pack(side='left', padx=(0, 0), pady=8)
+        
+        btn_style = {
+            "font": ("Segoe UI", 12, "bold"), 
+            "fg": self.COLORS['surface'], 
+            "relief": "flat", 
+            "padx": 16, 
+            "pady": 6, 
+            "bd": 0, 
+            "activeforeground": self.COLORS['surface'],
+            "cursor": "hand2"
+        }
+        
         botones = [
-            ("Buscar", self.cargar_productos, "#1976d2", "#1565c0"),
-            ("Cargar Datos", self.cargar_productos, "#43a047", "#388e3c"),
-            ("Nuevo", self.nuevo_producto, "#1565c0", "#1976d2"),
-            ("Editar", self.editar_producto, "#ffa000", "#ffb300"),
-            ("Eliminar", self.eliminar_producto, "#d32f2f", "#b71c1c")
+            ("Buscar", self.cargar_productos, self.COLORS['primary'], self.COLORS['primary_dark']),
+            ("Cargar Datos", self.cargar_productos, self.COLORS['success'], self.COLORS['success_dark']),
+            ("Nuevo", self.nuevo_producto, self.COLORS['primary_dark'], self.COLORS['primary']),
+            ("Editar", self.editar_producto, self.COLORS['warning'], self.COLORS['warning_dark']),
+            ("Eliminar", self.eliminar_producto, self.COLORS['danger'], self.COLORS['danger_dark'])
         ]
+        
         for txt, cmd, color, active in botones:
-            btn = tk.Button(btn_group, text=txt, command=cmd, bg=color, activebackground=active, **btn_style)
-            btn.pack(side='left', padx=6, pady=2)
-        # Tabla profesional y responsiva
-        tabla_frame = tk.Frame(self, bg="#fff")
-        tabla_frame.pack(fill='both', expand=True, padx=24, pady=(0, 18))
+            btn = tk.Button(
+                btn_group, 
+                text=txt, 
+                command=cmd, 
+                bg=color, 
+                activebackground=active, 
+                **btn_style
+            )
+            btn.pack(side='left', padx=8, pady=3)
+        
+        # Tabla profesional y responsiva con mejor diseño
+        tabla_frame = tk.Frame(self, bg=self.COLORS['surface'])
+        tabla_frame.pack(fill='both', expand=True, padx=25, pady=(0, 20))
+        
         # Se comenta la columna 'estado' para futura visualización
         # columns = ("id", "codigo", "nombre", "marca", "orden", "medida", "precio", "subcuenta", "stock", "fecha_ingreso", "fecha_vencimiento", "estado")
         columns = ("id", "codigo", "nombre", "marca", "orden", "medida", "mayor", "subcuenta", "stock", "fecha_ingreso", "fecha_vencimiento")
-        # Scrollbars
+        
+        # Scrollbars con mejor diseño
         vsb = tk.Scrollbar(tabla_frame, orient="vertical", command=lambda *args: self.tabla.yview(*args))
         hsb = tk.Scrollbar(tabla_frame, orient="horizontal", command=lambda *args: self.tabla.xview(*args))
-        self.tabla = ttk.Treeview(tabla_frame, columns=columns, show='headings', style="Treeview", yscrollcommand=vsb.set, xscrollcommand=hsb.set)
-        self.tabla.grid(row=0, column=0, sticky='nsew', padx=6, pady=6)
+        
+        self.tabla = ttk.Treeview(
+            tabla_frame, 
+            columns=columns, 
+            show='headings', 
+            style="Treeview", 
+            yscrollcommand=vsb.set, 
+            xscrollcommand=hsb.set,
+            height=15
+        )
+        self.tabla.grid(row=0, column=0, sticky='nsew', padx=8, pady=8)
         vsb.grid(row=0, column=1, sticky='ns')
         hsb.grid(row=1, column=0, sticky='ew')
         tabla_frame.grid_rowconfigure(0, weight=1)
         tabla_frame.grid_columnconfigure(0, weight=1)
-        self.lbl_status = tk.Label(tabla_frame, text="Productos cargados: 0", font=("Segoe UI", 12, "bold"), fg="#1976d2", bg="#fff")
-        self.lbl_status.grid(row=2, column=0, sticky='w', padx=8, pady=(0, 8))
+        
+        # Label de estado con mejor diseño
+        self.lbl_status = tk.Label(
+            tabla_frame, 
+            text="Productos cargados: 0", 
+            font=("Segoe UI", 13, "bold"), 
+            fg=self.COLORS['primary'], 
+            bg=self.COLORS['surface']
+        )
+        self.lbl_status.grid(row=2, column=0, sticky='w', padx=10, pady=(0, 10))
+        
         style = ttk.Style()
         self.tabla_style_patch(style)
+        
         # Configurar encabezados y columnas
         self.tabla.heading("id", text="ID")
         self.tabla.column("id", width=0, stretch=False)
+        
         # Se comenta el header 'estado' y se cambia 'precio' por 'mayor'
         headers = [
             ("codigo", "Código"),
@@ -87,13 +196,20 @@ class ProductosPanel(ttk.Frame):
             ("fecha_vencimiento", "F. Vencimiento")
             # ("estado", "Estado")  # Comentado para futura visualización
         ]
+        
         for col, header in headers:
             self.tabla.heading(col, text=header)
-            self.tabla.column(col, width=120, anchor='center')
-        self.tabla.tag_configure('oddrow', background='#f3f6fb')
-        self.tabla.tag_configure('evenrow', background='#e3f2fd')
+            # Ancho adaptativo según el contenido
+            width = max(120, len(header) * 10)
+            self.tabla.column(col, width=width, anchor='center', minwidth=100)
+        
+        # Configurar estilos de filas alternadas con la nueva paleta
+        self.tabla.tag_configure('oddrow', background=self.COLORS['background'])
+        self.tabla.tag_configure('evenrow', background=self.COLORS['surface'])
+        
         # Forzar color de encabezados en Windows (después de crear self.tabla)
         self.tabla_style_patch(style)
+
     def tabla_style_patch(self, style):
         # Refuerza el color de encabezado en Windows (Tkinter bug workaround)
         import platform
