@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from services.api import get, post
+from services.fefo_service import FEFOService
 from ui.styles import COLORS, FONTS, BUTTON_STYLES, ENTRY_STYLES, LABEL_STYLES, FRAME_STYLES, TABLE_STYLES, SPACING, DIMENSIONS
 
 class MovimientosPanel(ttk.Frame):
@@ -38,6 +39,22 @@ class MovimientosPanel(ttk.Frame):
         btn_frame.pack(fill='x', pady=SPACING['md'])
         ttk.Button(btn_frame, text="Registrar Entrada", command=self.registrar_entrada).pack(side='left', padx=10)
         ttk.Button(btn_frame, text="Registrar Salida", command=self.registrar_salida).pack(side='left', padx=10)
+        
+        # Botón para simular salida FEFO
+        btn_simular_fefo = tk.Button(
+            btn_frame,
+            text="🧮 Simular Salida FEFO",
+            command=self.simular_salida_fefo,
+            bg=COLORS['warning'],
+            fg=COLORS['surface'],
+            font=FONTS['button'],
+            relief='flat',
+            padx=16,
+            pady=6,
+            activebackground=COLORS['warning_dark'],
+            cursor='hand2'
+        )
+        btn_simular_fefo.pack(side='left', padx=10)
 
         # Tabla de movimientos
         tabla_frame = tk.Frame(self, bg=COLORS['background'])
@@ -62,6 +79,24 @@ class MovimientosPanel(ttk.Frame):
 
     def registrar_salida(self):
         self._abrir_formulario_movimiento('salida')
+    
+    def simular_salida_fefo(self):
+        """Abre ventana para simular una salida FEFO"""
+        # Obtener productos activos
+        try:
+            resp = get("/products")
+            if not resp.success:
+                raise Exception(resp.message or "Error al obtener productos")
+            productos_full = [p for p in (resp.data or []) if p.get("estado") != "baja"]
+            if not productos_full:
+                messagebox.showwarning("Sin productos", "No hay productos activos para simular salida.")
+                return
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+            return
+        
+        # Crear ventana de simulación
+        self.crear_ventana_simulacion_fefo(productos_full)
 
     def _abrir_formulario_movimiento(self, tipo):
         # Obtener productos activos
@@ -132,11 +167,31 @@ class MovimientosPanel(ttk.Frame):
         cantidad_entry = tk.Entry(frm, textvariable=cantidad_var, width=38, **entry_style)
         cantidad_entry.grid(row=3, column=1, padx=5, pady=7)
         
+        # Campo de fecha
+        tk.Label(frm, text="Fecha:", **label_style).grid(row=4, column=0, sticky='e', padx=5, pady=7)
+        fecha_var = tk.StringVar()
+        from tkcalendar import DateEntry
+        import datetime
+        hoy = datetime.date.today().strftime('%Y-%m-%d')
+        fecha_var.set(hoy)
+        fecha_entry = DateEntry(frm, textvariable=fecha_var, date_pattern='yyyy-mm-dd', font=FONTS['body_medium'], width=38)
+        fecha_entry.grid(row=4, column=1, padx=5, pady=7)
+        
+        # Campo de fecha de vencimiento (solo para entradas)
+        if tipo == 'entrada':
+            tk.Label(frm, text="Fecha vencimiento:", **label_style).grid(row=5, column=0, sticky='e', padx=5, pady=7)
+            fecha_venc_var = tk.StringVar()
+            # Por defecto, 1 año después de la fecha de entrada
+            fecha_venc_default = (datetime.date.today() + datetime.timedelta(days=365)).strftime('%Y-%m-%d')
+            fecha_venc_var.set(fecha_venc_default)
+            fecha_venc_entry = DateEntry(frm, textvariable=fecha_venc_var, date_pattern='yyyy-mm-dd', font=FONTS['body_medium'], width=38)
+            fecha_venc_entry.grid(row=5, column=1, padx=5, pady=7)
+        
         # Campo de observaciones
-        tk.Label(frm, text="Observaciones:", **label_style).grid(row=4, column=0, sticky='e', padx=5, pady=7)
+        tk.Label(frm, text="Observaciones:", **label_style).grid(row=6 if tipo == 'entrada' else 5, column=0, sticky='e', padx=5, pady=7)
         obs_var = tk.StringVar()
         obs_entry = tk.Entry(frm, textvariable=obs_var, width=38, **entry_style)
-        obs_entry.grid(row=4, column=1, padx=5, pady=7)
+        obs_entry.grid(row=6 if tipo == 'entrada' else 5, column=1, padx=5, pady=7)
         
         def enviar():
             try:
@@ -163,29 +218,99 @@ class MovimientosPanel(ttk.Frame):
                         cantidad_entry.focus_set()
                         cantidad_var.set("")
                         return
+                    
+                    # Mostrar información FEFO para salidas
+                    try:
+                        simulacion_fefo = FEFOService.simular_salida_fefo(producto_id, cantidad)
+                        if simulacion_fefo['success']:
+                            sim = simulacion_fefo['simulacion']
+                            info_fefo = f"\n\n📋 DISTRIBUCIÓN FEFO:\n"
+                            info_fefo += f"• Se tomarán {cantidad} unidades siguiendo FEFO\n"
+                            info_fefo += f"• Lotes afectados: {len(sim['lotes_afectados'])}\n"
+                            
+                            for i, lote in enumerate(sim['lotes_afectados'], 1):
+                                info_fefo += f"• Lote {i}: {lote['numero_lote']} ({lote['cantidad_usada']} unidades)\n"
+                                info_fefo += f"  Vence: {lote['fecha_vencimiento']}\n"
+                            
+                            messagebox.showinfo("Información FEFO", info_fefo, parent=top)
+                    except Exception as e:
+                        print(f"Advertencia: No se pudo mostrar información FEFO: {e}")
+                
                 usuario = "admin"  # Cambia por el usuario real si aplica
-                body = {
-                    "producto_id": int(producto_id),
-                    "cantidad": cantidad,
-                    "usuario": usuario,
-                    "observaciones": obs_var.get()
-                }
+                
                 if tipo == 'entrada':
-                    resp = post("/movements/entry", body)
+                    # Para entradas, no enviar fecha_movimiento (la API no lo acepta)
+                    body_entrada = {
+                        "producto_id": int(producto_id),
+                        "cantidad": cantidad,
+                        "usuario": usuario,
+                        "observaciones": obs_var.get()
+                    }
+                    resp = post("/movements/entry", body_entrada)
+                    
+                    # Si la entrada fue exitosa, crear un lote FEFO
+                    if resp.success:
+                        try:
+                            # Crear lote de entrada para FEFO con fecha de vencimiento real
+                            lote_entrada = FEFOService.crear_lote_entrada(
+                                producto_id=int(producto_id),
+                                cantidad=cantidad,
+                                fecha_entrada=fecha_var.get(),
+                                fecha_vencimiento=fecha_venc_var.get()  # Usar fecha de vencimiento del formulario
+                            )
+                            print(f"✅ Lote FEFO creado: {lote_entrada.numero_lote} - Vence: {fecha_venc_var.get()}")
+                        except Exception as e:
+                            print(f"⚠️ No se pudo crear lote FEFO: {e}")
+                            # No es crítico, continuar
                 else:
-                    resp = post("/movements/exit", body)
-                if resp.success:
-                    messagebox.showinfo("Éxito", f"{('Entrada' if tipo=='entrada' else 'Salida')} registrada correctamente")
+                    # Para salidas, incluir fecha_movimiento para FEFO
+                    body_salida = {
+                        "producto_id": int(producto_id),
+                        "cantidad": cantidad,
+                        "usuario": usuario,
+                        "observaciones": obs_var.get(),
+                        "fecha_movimiento": fecha_var.get()
+                    }
+                    
+                    # Para salidas, usar lógica FEFO
+                    try:
+                        resultado_fefo = FEFOService.aplicar_salida_fefo(
+                            producto_id, cantidad, usuario, obs_var.get(), fecha_var.get()
+                        )
+                        
+                        if resultado_fefo['success']:
+                            messagebox.showinfo("Éxito", resultado_fefo['message'])
+                            top.destroy()
+                            self.cargar_movimientos()
+                            return
+                        else:
+                            messagebox.showerror("Error FEFO", resultado_fefo['message'], parent=top)
+                            return
+                    except Exception as e:
+                        # Fallback a método tradicional si FEFO falla
+                        resp = post("/movements/exit", body_salida)
+                        if resp.success:
+                            messagebox.showinfo("Éxito", f"Salida registrada (método tradicional)")
+                            top.destroy()
+                            self.cargar_movimientos()
+                            return
+                        else:
+                            messagebox.showerror("Error", resp.message, parent=top)
+                        return
+                
+                # Verificar respuesta para entradas
+                if tipo == 'entrada' and resp.success:
+                    messagebox.showinfo("Éxito", "Entrada registrada correctamente")
                     top.destroy()
                     self.cargar_movimientos()
-                else:
+                elif tipo == 'entrada' and not resp.success:
                     messagebox.showerror("Error", resp.message, parent=top)
             except Exception as e:
                 messagebox.showerror("Error", str(e), parent=top)
         
         # Frame de botones con estilos mejorados
         btn_frame = tk.Frame(frm, bg=COLORS['background'])
-        btn_frame.grid(row=5, column=0, columnspan=2, pady=SPACING['lg'])
+        btn_frame.grid(row=7 if tipo == 'entrada' else 6, column=0, columnspan=2, pady=SPACING['lg'])
         
         # Botón Guardar
         btn_guardar = tk.Button(
@@ -218,6 +343,190 @@ class MovimientosPanel(ttk.Frame):
             cursor="hand2"
         )
         btn_cancelar.pack(side='left', padx=10)
+    
+    def crear_ventana_simulacion_fefo(self, productos):
+        """Crea ventana para simular salida FEFO"""
+        top = tk.Toplevel(self)
+        top.title("Simular Salida FEFO")
+        top.geometry("700x600")
+        top.configure(bg=COLORS['background'])
+        top.resizable(False, False)
+        
+        # Centrar ventana
+        top.transient(self)
+        top.grab_set()
+        
+        # Frame principal
+        main_frame = tk.Frame(top, bg=COLORS['background'])
+        main_frame.pack(fill='both', expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
+        
+        # Título
+        tk.Label(
+            main_frame,
+            text="🧮 Simulación de Salida FEFO",
+            font=FONTS['title_small'],
+            fg=COLORS['primary'],
+            bg=COLORS['background']
+        ).pack(pady=(0, SPACING['lg']))
+        
+        # Frame para selección de producto
+        producto_frame = tk.Frame(main_frame, bg=COLORS['surface'], relief='solid', borderwidth=1)
+        producto_frame.pack(fill='x', pady=(0, SPACING['md']))
+        
+        tk.Label(
+            producto_frame,
+            text="Seleccionar Producto:",
+            font=FONTS['heading_small'],
+            bg=COLORS['surface']
+        ).pack(anchor='w', padx=SPACING['md'], pady=SPACING['sm'])
+        
+        # Combo de productos
+        productos_filtrados = [p for p in productos if p.get("estado") != "baja"]
+        nombres_productos = [f"{p.get('codigo_item', '')} - {p.get('nombre_item', '')}" for p in productos_filtrados]
+        
+        producto_var = tk.StringVar()
+        producto_combo = ttk.Combobox(
+            producto_frame,
+            textvariable=producto_var,
+            values=nombres_productos,
+            state="readonly",
+            font=FONTS['body_medium'],
+            width=50
+        )
+        producto_combo.pack(anchor='w', padx=SPACING['md'], pady=(0, SPACING['sm']))
+        
+        # Campo de cantidad
+        cantidad_frame = tk.Frame(main_frame, bg=COLORS['background'])
+        cantidad_frame.pack(fill='x', pady=SPACING['md'])
+        
+        tk.Label(
+            cantidad_frame,
+            text="Cantidad a simular:",
+            font=FONTS['heading_small'],
+            fg=COLORS['text_primary'],
+            bg=COLORS['background']
+        ).pack(anchor='w')
+        
+        cantidad_var = tk.StringVar()
+        cantidad_entry = tk.Entry(
+            cantidad_frame,
+            textvariable=cantidad_var,
+            font=FONTS['body_medium'],
+            width=20
+        )
+        cantidad_entry.pack(anchor='w', pady=(SPACING['sm'], 0))
+        
+        # Botón simular
+        btn_frame = tk.Frame(main_frame, bg=COLORS['background'])
+        btn_frame.pack(fill='x', pady=SPACING['md'])
+        
+        btn_simular = tk.Button(
+            btn_frame,
+            text="Simular Salida FEFO",
+            command=lambda: self.ejecutar_simulacion_fefo(
+                producto_combo.current(), productos_filtrados, cantidad_var.get(), top
+            ),
+            bg=COLORS['warning'],
+            fg=COLORS['surface'],
+            font=FONTS['button'],
+            relief='flat',
+            padx=16,
+            pady=8,
+            activebackground=COLORS['warning_dark'],
+            cursor='hand2'
+        )
+        btn_simular.pack(side='left')
+        
+        # Área de resultados
+        self.resultado_text = tk.Text(
+            main_frame,
+            height=20,
+            font=FONTS['body_medium'],
+            bg=COLORS['surface'],
+            relief='solid',
+            borderwidth=1
+        )
+        self.resultado_text.pack(fill='both', expand=True, pady=(SPACING['md'], 0))
+        
+        # Configurar como solo lectura
+        self.resultado_text.config(state='disabled')
+        
+        # Botón cerrar
+        btn_cerrar = tk.Button(
+            main_frame,
+            text="Cerrar",
+            command=top.destroy,
+            bg=COLORS['secondary'],
+            fg=COLORS['surface'],
+            font=FONTS['button'],
+            relief='flat',
+            padx=16,
+            pady=8,
+            activebackground=COLORS['secondary_dark'],
+            cursor='hand2'
+        )
+        btn_cerrar.pack(pady=SPACING['md'])
+    
+    def ejecutar_simulacion_fefo(self, idx_producto, productos_filtrados, cantidad_str, top):
+        """Ejecuta la simulación FEFO"""
+        try:
+            if idx_producto < 0:
+                messagebox.showwarning("Selección requerida", "Por favor selecciona un producto.", parent=top)
+                return
+            
+            cantidad = int(cantidad_str)
+            if cantidad <= 0:
+                raise ValueError("La cantidad debe ser mayor a cero")
+            
+            producto = productos_filtrados[idx_producto]
+            producto_id = producto.get("id")
+            
+            # Simular salida FEFO
+            resultado = FEFOService.simular_salida_fefo(producto_id, cantidad)
+            
+            # Mostrar resultados
+            self.mostrar_resultado_simulacion_fefo(resultado)
+            
+        except ValueError as e:
+            messagebox.showerror("Error", f"Error en la cantidad: {str(e)}", parent=top)
+        except Exception as e:
+            messagebox.showerror("Error", f"Error en la simulación: {str(e)}", parent=top)
+    
+    def mostrar_resultado_simulacion_fefo(self, resultado):
+        """Muestra el resultado de la simulación FEFO"""
+        self.resultado_text.config(state='normal')
+        self.resultado_text.delete(1.0, tk.END)
+        
+        if resultado['success']:
+            sim = resultado['simulacion']
+            
+            texto = f"✅ SIMULACIÓN FEFO EXITOSA\n"
+            texto += f"{'='*60}\n\n"
+            texto += f"📦 Cantidad solicitada: {sim['cantidad_solicitada']} unidades\n"
+            texto += f"📊 Stock disponible: {sim['stock_disponible']} unidades\n"
+            texto += f"📉 Stock restante: {sim['stock_restante']} unidades\n"
+            texto += f"📋 Resumen: {sim['resumen']}\n\n"
+            texto += f"🔍 DETALLE DE DISTRIBUCIÓN FEFO:\n"
+            texto += f"{'='*40}\n"
+            
+            for i, lote in enumerate(sim['lotes_afectados'], 1):
+                texto += f"\n📦 Lote {i}:\n"
+                texto += f"   • Número: {lote['numero_lote']}\n"
+                texto += f"   • Cantidad usada: {lote['cantidad_usada']} unidades\n"
+                texto += f"   • Fecha vencimiento: {lote['fecha_vencimiento']}\n"
+                texto += f"   • Motivo: {lote['motivo']}\n"
+            
+            texto += f"\n\n💡 INFORMACIÓN ADICIONAL:\n"
+            texto += f"• Esta simulación muestra cómo se distribuiría la salida\n"
+            texto += f"• siguiendo la lógica FEFO (First Expired, First Out)\n"
+            texto += f"• Los lotes se procesan en orden de fecha de vencimiento\n"
+        else:
+            texto = f"❌ ERROR EN LA SIMULACIÓN\n"
+            texto += f"{'='*40}\n\n"
+            texto += f"Error: {resultado['message']}\n"
+        
+        self.resultado_text.insert(1.0, texto)
+        self.resultado_text.config(state='disabled')
 
     def __init__(self, parent):
         super().__init__(parent)

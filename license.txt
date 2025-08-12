@@ -1,0 +1,30 @@
+LICENCIA DE SOFTWARE - SISTEMA DE ALMACÉN INSTITUTO
+
+Copyright © 2025 CrisLissRen. Todos los derechos reservados.
+
+TÉRMINOS Y CONDICIONES DE USO:
+
+1. LICENCIA:
+   Este software se proporciona "tal como está" para uso educativo e institucional.
+
+2. PERMISOS:
+   - Uso personal e institucional
+   - Modificación para uso interno
+   - Distribución dentro de la institución
+
+3. RESTRICCIONES:
+   - No redistribución comercial
+   - No ingeniería inversa
+   - No eliminación de marcas de copyright
+
+4. GARANTÍA:
+   El software se proporciona sin garantías de ningún tipo, incluyendo pero no limitado a garantías de comerciabilidad, idoneidad para un propósito particular y no infracción.
+
+5. RESPONSABILIDAD:
+   En ningún caso los autores serán responsables por daños directos, indirectos, incidentales, especiales, ejemplares o consecuentes.
+
+6. CONTACTO:
+   Para soporte técnico: soporte@almacen-instituto.com
+   Sitio web: https://almacen-instituto.onrender.com
+
+Al instalar y usar este software, usted acepta estos términos y condiciones.

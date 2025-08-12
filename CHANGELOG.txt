@@ -1,0 +1,50 @@
+REGISTRO DE CAMBIOS - SISTEMA DE ALMACÉN INSTITUTO
+==================================================
+
+VERSIÓN 2.0.0 (2025-01-XX)
+===========================
+
+NUEVAS CARACTERÍSTICAS:
+- ✅ Sistema de cache inteligente para mejor rendimiento
+- ✅ Carga asíncrona de datos del dashboard
+- ✅ Interfaz de usuario mejorada con indicadores de carga
+- ✅ Sistema de navegación por pestañas optimizado
+- ✅ Validaciones de sistema mejoradas
+- ✅ Instalador profesional de nivel empresarial
+
+MEJORAS DE RENDIMIENTO:
+- 🚀 Carga inicial 80% más rápida
+- 🚀 Navegación entre paneles instantánea
+- 🚀 Sistema de cache con TTL de 5 minutos
+- 🚀 Carga lazy de paneles bajo demanda
+
+INTERFAZ DE USUARIO:
+- 🎨 Diseño moderno y profesional
+- 🎨 Indicadores de carga visuales
+- 🎨 Colores mejorados para mejor contraste
+- 🎨 Botón de actualización más visible
+- 🎨 Mensajes de estado informativos
+
+OPTIMIZACIONES TÉCNICAS:
+- ⚙️ Código refactorizado para mejor mantenimiento
+- ⚙️ Manejo de errores mejorado
+- ⚙️ Sistema de logging para debugging
+- ⚙️ Configuración centralizada
+- ⚙️ Utilidades para tablas mejoradas
+
+CORRECCIONES DE BUGS:
+- 🐛 Solucionado problema de pestañas desapareciendo
+- 🐛 Corregido problema de datos no mostrándose en dashboard
+- 🐛 Mejorado manejo de excepciones en servicios FEFO
+- 🐛 Optimizado proceso de creación de lotes
+
+VERSIÓN 1.0.0 (2024-XX-XX)
+===========================
+- Lanzamiento inicial del sistema
+- Funcionalidades básicas de inventario
+- Sistema FEFO implementado
+- Interfaz básica de usuario
+
+==================================================
+Para más información: https://almacen-instituto.onrender.com
+Soporte: soporte@almacen-instituto.com

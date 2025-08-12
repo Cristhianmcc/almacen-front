@@ -50,7 +50,8 @@ class ProductosPanel(ttk.Frame):
         leyendas = [
             (self.COLORS['danger'], "● Stock bajo"),
             (self.COLORS['success'], "● Stock normal"),
-            (self.COLORS['warning'], "● Próxima expiración")
+            (self.COLORS['warning'], "● Próxima expiración"),
+            (self.COLORS['accent'], "🎯 Fecha vencimiento dinámica (FEFO)")
         ]
         
         for color, texto in leyendas:
@@ -235,8 +236,13 @@ class ProductosPanel(ttk.Frame):
             self.tabla.delete(*self.tabla.get_children())
             count = 0
             low_stock_threshold = 10  # Puedes ajustar este valor si lo deseas
+            
+            # Importar el servicio FEFO
+            from services.fefo_service import FEFOService
+            
             # Configurar el tag para bajo stock
             self.tabla.tag_configure("bajo_stock", background="#ffcccc")
+            
             for prod in productos:
                 id_ = prod.get("id", "")
                 codigo = prod.get("codigo_item", "")
@@ -248,8 +254,17 @@ class ProductosPanel(ttk.Frame):
                 subcuenta = prod.get("sub_cta", "")
                 stock = prod.get("stock_actual", "")
                 fecha_ingreso = prod.get("fecha_ingreso", "")
+                
+                # Obtener fecha de vencimiento más próxima usando FEFO
                 fecha_vencimiento = prod.get("fecha_vencimiento", "")
-                # estado = prod.get("estado", "")  # Comentado para futura visualización
+                try:
+                    fecha_proxima = FEFOService.obtener_fecha_vencimiento_proxima(int(id_))
+                    if fecha_proxima:
+                        fecha_vencimiento = fecha_proxima
+                        print(f"✅ Producto {nombre}: Fecha vencimiento actualizada a {fecha_proxima}")
+                except Exception as e:
+                    print(f"⚠️ No se pudo obtener fecha próxima para producto {id_}: {e}")
+                
                 # Filtro por nombre o código
                 if prod.get("estado", "") != "baja" and (filtro in str(nombre).lower() or filtro in str(codigo).lower()):
                     tags = []
